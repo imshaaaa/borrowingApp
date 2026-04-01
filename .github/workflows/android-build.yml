@@ -34,7 +34,12 @@ jobs:
         run: pnpm install
 
       - name: Build Web Assets
-        run: pnpm run generate # Ensure this matches your package.json build script
+        run: pnpm run generate
+        env:
+          # List every key your app needs here
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
 
       - name: Capacitor Sync
         run: npx cap sync android
