@@ -58,32 +58,32 @@
   console.log(userStore.user)
 
   const checkPermission = async () => {
-    const checkPermission = async () => {
-    try {
-      let permission = await LocalNotifications.checkPermissions()
-  
-      if (permission.display !== 'granted') {
-        permission = await LocalNotifications.requestPermissions()
-      }
-  
-      if (permission.display === 'granted') {
-        await LocalNotifications.createChannel({
-          id: 'test',
-          name: 'Test',
-          description: 'Setting up for notification',
-          importance: 5,
-          visibility: 1,
-          vibrate: true
-        })
-        console.log('Channel created')
-      } else {
-        console.log('Permission not granted')
-      }
-    } catch (err) {
-      console.log(err)
+  try {
+    let permission = await LocalNotifications.checkPermissions();
+    console.log('Current status:', permission.display);
+
+    if (permission.display !== 'granted') {
+      permission = await LocalNotifications.requestPermissions();
     }
+
+    if (permission.display === 'granted') {
+      // Create the channel - essential for Android 8.0+
+      await LocalNotifications.createChannel({
+        id: 'test',
+        name: 'Test',
+        description: 'Setting up for notification',
+        importance: 5,
+        visibility: 1,
+        vibration: true 
+      });
+      console.log('Channel created and permission granted');
+    } else {
+      console.log('Permission denied by user');
     }
+  } catch (err) {
+    console.error('Permission Error:', err);
   }
+};
 
   const testNotif = async () => {
     try {
