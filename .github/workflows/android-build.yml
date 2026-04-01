@@ -34,7 +34,7 @@ jobs:
         run: pnpm install
 
       - name: Build Web Assets
-        run: pnpm run build # Ensure this matches your package.json build script
+        run: pnpm run generate # Ensure this matches your package.json build script
 
       - name: Capacitor Sync
         run: npx cap sync android
