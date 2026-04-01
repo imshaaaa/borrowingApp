@@ -117,15 +117,15 @@
       }
     })
 
-    const checkLaunchNotification = async () => {
-  const notifications = await LocalNotifications.getDeliveredNotifications();
-  if (notifications.notifications.length > 0) {
-    // Process the most recent one if needed
-    const lastNotif = notifications.notifications[0];
-      if (lastNotif.extra?.url) {
-        ionRouter.navigate(url, 'forward', 'push');
-      }
+  const checkLaunchNotification = async () => {
+    const notifications = await LocalNotifications.getDeliveredNotifications();
+    if (notifications.notifications.length > 0) {
+      // Process the most recent one if needed
+      const lastNotif = notifications.notifications[0];
+        if (lastNotif.extra?.url) {
+          ionRouter.navigate(url, 'forward', 'push');
+        }
     }
-  };
+  }
   }
 </script>
