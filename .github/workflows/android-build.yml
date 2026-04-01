@@ -1,7 +1,7 @@
 name: Build Android APK
 on:
   push:
-    branches: [ main, master ] # Change this to your branch name
+    branches: [ main ] # Change this to your branch name
 
 jobs:
   build:
