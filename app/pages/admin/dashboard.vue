@@ -1,0 +1,107 @@
+<template>
+  <IonPage>
+    <IonContent>
+      <NuxtLayout>
+        <div>
+          <div class="flex flex-col gap-4">
+            <UCard variant="outline" class="shadow px-2 py-2">
+              <div class="flex justify-between">
+                <p class="text-sm font-medium">Overall Statistics</p>
+                <UIcon name="i-lucide-box" class="text-blue-500" />
+              </div>
+              <p class="text-2xl font-bold mt-4 text-gray-800">{{ user?.sub }}</p>
+            </UCard>
+            <UCard variant="outline" class="shadow px-2 py-2">
+              <div class="flex justify-between">
+                <p class="text-sm font-medium">Recently Borrowed</p>
+                <UIcon name="i-lucide-workflow" class="text-blue-500" />
+              </div>
+              <p class="text-2xl font-bold mt-4 text-gray-800">43</p>
+            </UCard>
+            <UCard variant="outline" class="shadow px-2 py-2">
+              <div class="flex justify-between">
+                <p class="text-sm font-medium">Pending Requests</p>
+                <UIcon name="i-lucide-clock" class="text-blue-500" />
+              </div>
+              <p class="text-2xl font-bold mt-4 text-gray-800">43</p>
+            </UCard>
+            <UCard variant="outline" class="shadow px-2 py-2">
+              <div class="flex justify-between">
+                <p class="text-sm font-medium">Returned Items</p>
+                <UIcon name="i-lucide-archive" class="text-blue-500" />
+              </div>
+              <p class="text-2xl font-bold mt-4 text-gray-800">43</p>
+            </UCard>
+          </div>
+          <UButton @click="checkPermission">Check permission</UButton>
+          <UButton @click="testNotif">Test Notif</UButton>
+        </div>
+      </NuxtLayout>
+    </IonContent>
+  </IonPage>
+</template>
+
+<script setup>
+
+  import { LocalNotifications } from '@capacitor/local-notifications'
+
+  
+  definePageMeta({
+    layout: 'admin'
+  })
+
+  const user = useSupabaseUser()
+  const userStore = useUserStore()
+  const supabase = useSupabaseClient()
+
+  console.log(user.value)
+  console.log(userStore.user)
+
+  const checkPermission = async () => {
+    const checkPermission = async () => {
+    try {
+      let permission = await LocalNotifications.checkPermissions()
+  
+      if (permission.display !== 'granted') {
+        permission = await LocalNotifications.requestPermissions()
+      }
+  
+      if (permission.display === 'granted') {
+        await LocalNotifications.createChannel({
+          id: 'test',
+          name: 'Test',
+          description: 'Setting up for notification',
+          importance: 5,
+          visibility: 1,
+          vibrate: true
+        })
+        console.log('Channel created')
+      } else {
+        console.log('Permission not granted')
+      }
+    } catch (err) {
+      console.log(err)
+    }
+    }
+  }
+
+  const testNotif = async () => {
+    try {
+      await LocalNotifications.schedule({
+        notifications: [{
+          id: 9999,
+          title: 'Technical App',
+          body: 'New borrow request!',
+          channelId: 'test',
+          schedule: { 
+          at: new Date(Date.now() + 2000),
+          allowWhileIdle: true
+        },
+        extra: { url: '/admin/borrowed-items' }
+        }]
+    })
+    } catch(err) {
+      console.log(err)
+    }
+  }
+</script>
