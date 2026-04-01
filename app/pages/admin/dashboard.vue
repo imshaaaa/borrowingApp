@@ -53,6 +53,7 @@
   const user = useSupabaseUser()
   const userStore = useUserStore()
   const supabase = useSupabaseClient()
+  const ionRouter = useIonRouter()
 
   console.log(user.value)
   console.log(userStore.user)
@@ -94,7 +95,7 @@
           body: 'New borrow request!',
           channelId: 'test',
           schedule: { 
-          at: new Date(Date.now() + 2000),
+          at: new Date(Date.now() + 500),
           allowWhileIdle: true
         },
         extra: { url: '/admin/borrowed-items' }
@@ -103,5 +104,28 @@
     } catch(err) {
       console.log(err)
     }
+  }
+
+  onMounted(async() => {
+    await
+      LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
+      const url = notificationAction.notification.extra?.url;
+    
+      if (url) {
+        console.log('Redirecting to:', url);
+        ionRouter.navigate(url, 'forward', 'push');
+      }
+    })
+
+    const checkLaunchNotification = async () => {
+  const notifications = await LocalNotifications.getDeliveredNotifications();
+  if (notifications.notifications.length > 0) {
+    // Process the most recent one if needed
+    const lastNotif = notifications.notifications[0];
+      if (lastNotif.extra?.url) {
+        ionRouter.navigate(url, 'forward', 'push');
+      }
+    }
+  };
   }
 </script>
