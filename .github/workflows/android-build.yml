@@ -9,13 +9,8 @@ jobs:
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-          - name: Checkout Source
+       
+      - name: Checkout Source
         uses: actions/checkout@v4
 
       # ADD THIS STEP BELOW
@@ -23,6 +18,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22' # This fixes the [fatal] error
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
       - name: Install PNPM # Or use 'npm' if you prefer
         uses: pnpm/action-setup@v2
