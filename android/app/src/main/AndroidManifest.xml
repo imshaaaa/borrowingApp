@@ -20,8 +20,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
       <receiver android:name="io.capawesome.capacitorjs.plugins.foregroundservice.NotificationActionBroadcastReceiver" />
-      <service 
-        android:name="io.capawesome.team.capacitor.android.foregroundservice.ForegroundService" 
+      <service android:name="io.capawesome.capacitorjs.plugins.foregroundservice.AndroidForegroundService" 
         android:foregroundServiceType="specialUse" 
         android:exported="false">
         <property 
