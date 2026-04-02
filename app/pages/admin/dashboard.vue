@@ -33,8 +33,16 @@
               <p class="text-2xl font-bold mt-4 text-gray-800">43</p>
             </UCard>
           </div>
-          <UButton @click="checkPermission">Check permission</UButton>
-          <UButton @click="testNotif">Test Notif</UButton>
+          <div class="flex justify-center flex-wrap gap-2">
+            <UButton @click="checkPermission">Check permission</UButton>
+            <UButton @click="testNotif">Test Notif</UButton>
+            <UButton @click="foregroundCheckPerm">Request Foreground Permission</UButton>
+            <UButton @click="setToforeground">Set to Foreground Mode</UButton>
+            <UButton @click="createNotificationChannel">Create Foreground Notification channel</UButton>
+            <UButton @click="deleteNotificationChannel">Delete Foreground Notification channel</UButton>
+            <UButton @click="startForegroundService">Start foreground</UButton>
+            <UButton @click="stopForegroundService">Stop foreground</UButton>
+          </div>
         </div>
       </NuxtLayout>
     </IonContent>
@@ -44,6 +52,7 @@
 <script setup>
 
   import { LocalNotifications } from '@capacitor/local-notifications'
+  import { ForegroundService } from '@capawesome-team/capacitor-android-foreground-service';
 
   
   definePageMeta({
@@ -75,7 +84,8 @@
         description: 'Setting up for notification',
         importance: 5,
         visibility: 1,
-        vibration: true 
+        vibration: true ,
+        sound: 'default'
       });
       console.log('Channel created and permission granted');
     } else {
@@ -105,6 +115,59 @@
       console.log(err)
     }
   }
+
+  const foregroundCheckPerm = async () => {
+    await ForegroundService.requestManageOverlayPermission()
+  }
+
+  const setToforeground = async () => {
+    await ForegroundService.moveToForeground()
+  }
+
+  const startForegroundService = async () => {
+    await ForegroundService.startForegroundService({
+      id: 1,
+      title: 'Title',
+      body: 'Body',
+      smallIcon: 'ic_stat_icon_config_sample',
+      buttons: [
+        {
+          title: 'Button 1',
+          id: 1,
+        },
+        {
+          title: 'Button 2',
+          id: 2,
+        },
+      ],
+      silent: false,
+      notificationChannelId: 'default',
+    });
+  };
+
+  const stopForegroundService = async () => {
+    await ForegroundService.stopForegroundService();
+  };
+
+  const createNotificationChannel = async () => {
+    try {
+      await ForegroundService.createNotificationChannel({
+        id: 'testForeground',
+        name: 'Default',
+        description: 'Default channel',
+        importance: 5,
+      });
+    } catch (error) {
+      console.log(error)
+    }
+    
+  };
+
+  const deleteNotificationChannel = async () => {
+    await ForegroundService.deleteNotificationChannel({
+      id: 'testForeground',
+    });
+  };
 
   onMounted(async() => {
     await
