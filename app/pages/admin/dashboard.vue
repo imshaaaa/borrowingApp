@@ -125,19 +125,10 @@
   const startForegroundService = async () => {
     await ForegroundService.startForegroundService({
       id: 1000,
-      title: 'Title',
-      body: 'Body',
+      title: 'Technical App Service',
+      body: 'Listening for new borrow request',
       smallIcon: 'push_icon',
-      buttons: [
-        {
-          title: 'Button 1',
-          id: 1,
-        },
-        {
-          title: 'Button 2',
-          id: 2,
-        },
-      ],
+      ongoing: true,
       silent: false,
       serviceType: ServiceType.None,
     });
