@@ -36,10 +36,8 @@
           <div class="flex justify-center flex-wrap gap-2">
             <UButton @click="checkPermission">Check permission</UButton>
             <UButton @click="testNotif">Test Notif</UButton>
-            <UButton @click="foregroundCheckPerm">Request Foreground Permission</UButton>
-            <UButton @click="setToforeground">Set to Foreground Mode</UButton>
-            <UButton @click="createNotificationChannel">Create Foreground Notification channel</UButton>
-            <UButton @click="deleteNotificationChannel">Delete Foreground Notification channel</UButton>
+            <UButton @click="requestPermission">Request Permission foreground</UButton>
+            <UButton @click="foregroundCheckPerm">Request Overlay Foreground Permission</UButton>
             <UButton @click="startForegroundService">Start foreground</UButton>
             <UButton @click="stopForegroundService">Stop foreground</UButton>
           </div>
@@ -52,7 +50,7 @@
 <script setup>
 
   import { LocalNotifications } from '@capacitor/local-notifications'
-  import { ForegroundService } from '@capawesome-team/capacitor-android-foreground-service';
+  import { ForegroundService, ServiceType } from '@capawesome-team/capacitor-android-foreground-service';
 
   
   definePageMeta({
@@ -116,14 +114,14 @@
     }
   }
 
+  const requestPermission = async () => {
+    await ForegroundService.requestPermissions()
+  }
+
   const foregroundCheckPerm = async () => {
     await ForegroundService.requestManageOverlayPermission()
   }
-
-  const setToforeground = async () => {
-    await ForegroundService.moveToForeground()
-  }
-
+  
   const startForegroundService = async () => {
     await ForegroundService.startForegroundService({
       id: 1,
@@ -141,7 +139,7 @@
         },
       ],
       silent: false,
-      notificationChannelId: 'default',
+      serviceType: ServiceType.Location,
     });
   };
 
@@ -149,24 +147,25 @@
     await ForegroundService.stopForegroundService();
   };
 
-  const createNotificationChannel = async () => {
+  const addListeners = async () => {
     try {
-      await ForegroundService.createNotificationChannel({
-        id: 'testForeground',
-        name: 'Default',
-        description: 'Default channel',
-        importance: 5,
+      // 1. Clear old listeners to prevent memory leaks or double-triggers
+      await ForegroundService.removeAllListeners();
+  
+      // 2. Add the listener for the notification button click
+      await ForegroundService.addListener('buttonClicked', (event) => {
+        console.log('Foreground button clicked:', event);
+  
+        // In Vue, you just call the methods directly. 
+        // No need for this.ngZone.run()
+        ForegroundService.stopForegroundService();
+        ForegroundService.moveToForeground();
       });
+      
+      console.log('Foreground listeners initialized');
     } catch (error) {
-      console.log(error)
+      console.error('Failed to set up Foreground listeners:', error);
     }
-    
-  };
-
-  const deleteNotificationChannel = async () => {
-    await ForegroundService.deleteNotificationChannel({
-      id: 'testForeground',
-    });
   };
 
   onMounted(async() => {
@@ -191,7 +190,7 @@
     }
   }
 
-    
+    addListeners()
   })
 
 </script>
