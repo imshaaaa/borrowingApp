@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+  
   <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
@@ -19,7 +20,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
       <receiver android:name="io.capawesome.capacitorjs.plugins.foregroundservice.NotificationActionBroadcastReceiver" />
-      <service android:name="io.capawesome.capacitorjs.plugins.foregroundservice.AndroidForegroundService" android:foregroundServiceType="location" />
+      <service 
+        android:name="com.capawesome.team.capacitor.android.foregroundservice.ForegroundService" 
+        android:foregroundServiceType="specialUse" 
+        android:exported="false">
+        <property 
+            android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" 
+            android:value="This service is used to maintain a real-time connection to the database for item borrowing updates." />
+      </service>
 
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"

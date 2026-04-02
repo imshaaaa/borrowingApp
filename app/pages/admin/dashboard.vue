@@ -127,7 +127,7 @@
       id: 1,
       title: 'Title',
       body: 'Body',
-      smallIcon: 'ic_stat_icon_config_sample',
+      smallIcon: 'res://ic_launcher',
       buttons: [
         {
           title: 'Button 1',
@@ -139,7 +139,7 @@
         },
       ],
       silent: false,
-      serviceType: ServiceType.Location,
+      serviceType: ServiceType.None,
     });
   };
 
