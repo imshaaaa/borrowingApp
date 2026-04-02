@@ -5,7 +5,7 @@
         <div>
           <LoadingTable v-if="isGettingStocksData" />
           <div v-if="!isGettingStocksData" class="flex justify-end">
-            <UButton color="secondary" variant="subtle" class="mr-2">Scan QR</UButton>
+            <UButton color="secondary" variant="subtle" class="mr-2" @click="isQrOpen = true">Scan QR</UButton>
           </div>
           <div v-if="!isGettingStocksData" class="mt-6">
             <UInput v-model="globalFilter" class="mb-2" placeholder="Global Filter Search..." color="secondary" />
@@ -63,6 +63,16 @@
                 <UButton v-if="isDeletingItem" color="error" loading>Deleting Item...</UButton>
               </template>
             </UModal>
+            <UModal title="Scan Qr" v-model:open="isQrOpen">
+              <template #body>
+                <div v-if="!isQrError">
+                  <QrcodeStream @error="onQrScanError" @detect="onDetectQr"/>
+                </div>
+                <div v-if="isQrError">
+                  <p>QR scanner erorr: {{ isQrErrorMsg }}</p>
+                </div>
+              </template>
+            </UModal>
           </div>
         </div>
       </NuxtLayout>
@@ -101,10 +111,10 @@
   const isItemNameError = ref(null)
   const isDeletingItem = ref(false)
   const categoriesItems = ref(['Computer Hardware','Network and Cabling','Repair and Maintenance Tools','Power Equipment','Audio-Visual Devices','Remote Controls'])
-
-  defineShortcuts({
-    o: () => open.value = !open.value
-  })
+  const isQrOpen = ref(false)
+  const isQrError = ref()
+  const isQrErrorMsg = ref(null)
+  const qrScanResult = ref()
 
   const schema = object({
     selectedItemName: string().required('Item name is required'),
@@ -118,7 +128,8 @@
     selectedCategory: undefined,
     selectedQuantity: undefined,
     selectedStatus: undefined,
-    selectedItemID: undefined
+    selectedItemID: undefined,
+    
   })
 
   const getStocks = async () => {
@@ -250,6 +261,19 @@
     })
     isDeletingItem.value = false
     isDeleteModalOpen.value = false
+  }
+
+  const onQrScanError = (err) => {
+    isQrErrorMsg.value = `[${err.name}]: ${err.message}`
+  }
+
+  const onDetectQr = (detectedCodes) => {
+    qrScanResult.value = detectedCodes.map((code) => {
+      return code.rawValue
+    })
+
+    isQrOpen.value = false
+    console.log(qrScanResult.value)
   }
 
   const pagination = ref({

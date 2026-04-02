@@ -16,7 +16,7 @@
                 <UButton icon="i-lucide-box" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('manage-stocks')">Manage Stocks</UButton>
                 <UButton icon="i-lucide-workflow" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('borrowed-items')">Borrowed Items</UButton>
                 <UButton icon="i-lucide-users" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('manage-users')">Manage Users</UButton>
-                <UButton icon="i-lucide-file-chart-column" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('reports')">Reports</UButton>
+                <!--<UButton icon="i-lucide-file-chart-column" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('reports')">Reports</UButton>-->
                 <UButton icon="i-lucide-history" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('history')">History</UButton>
               </div>
             </div>

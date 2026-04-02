@@ -33,14 +33,14 @@
               <p class="text-2xl font-bold mt-4 text-gray-800">43</p>
             </UCard>
           </div>
-          <div class="flex justify-center flex-wrap gap-2">
+          <!--<div class="flex justify-center flex-wrap gap-2">
             <UButton @click="checkPermission">Check permission</UButton>
             <UButton @click="testNotif">Test Notif</UButton>
             <UButton @click="requestPermission">Request Permission foreground</UButton>
             <UButton @click="foregroundCheckPerm">Request Overlay Foreground Permission</UButton>
             <UButton @click="startForegroundService">Start foreground</UButton>
             <UButton @click="stopForegroundService">Stop foreground</UButton>
-          </div>
+          </div>-->
         </div>
       </NuxtLayout>
     </IonContent>
@@ -140,15 +140,11 @@
 
   const addListeners = async () => {
     try {
-      // 1. Clear old listeners to prevent memory leaks or double-triggers
       await ForegroundService.removeAllListeners();
   
-      // 2. Add the listener for the notification button click
       await ForegroundService.addListener('buttonClicked', (event) => {
         console.log('Foreground button clicked:', event);
   
-        // In Vue, you just call the methods directly. 
-        // No need for this.ngZone.run()
         ForegroundService.stopForegroundService();
         ForegroundService.moveToForeground();
       });

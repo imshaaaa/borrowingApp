@@ -7,7 +7,8 @@ export default defineNuxtConfig({
     '@nuxtjs/ionic',
     '@nuxt/ui',
     '@nuxtjs/supabase',
-    '@pinia/nuxt'
+    '@pinia/nuxt',
+    'nuxt-qrcode'
   ],
   css: ['~/assets/css/main.css'],
   app: {
