@@ -124,10 +124,10 @@
   
   const startForegroundService = async () => {
     await ForegroundService.startForegroundService({
-      id: 1,
+      id: 1000,
       title: 'Title',
       body: 'Body',
-      smallIcon: 'res://ic_launcher',
+      smallIcon: 'push_icon',
       buttons: [
         {
           title: 'Button 1',
