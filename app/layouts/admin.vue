@@ -190,7 +190,7 @@ watch(open, (isNowOpen) => {
 
     await LocalNotifications.schedule({
       notifications: [{
-        id: Date.now(),
+        id: 99999,
         title: 'Technical App',
         body: `${data.new.borrower_name} wants to borrow ${data.new.quantity} pc(s) of ${data.new.item}`,
         channelId: 'borrow-alert3',
