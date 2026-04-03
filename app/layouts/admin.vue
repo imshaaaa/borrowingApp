@@ -192,7 +192,7 @@ watch(open, (isNowOpen) => {
       notifications: [{
         id: Date.now(),
         title: 'Technical App',
-        body: `${payload.new.borrower_name} wants to borrow ${payload.new.quantity} pc(s) of ${payload.new.item}`,
+        body: `${data.new.borrower_name} wants to borrow ${data.new.quantity} pc(s) of ${data.new.item}`,
         channelId: 'borrow-alert3',
         schedule: { 
         allowWhileIdle: true
@@ -250,9 +250,9 @@ watch(open, (isNowOpen) => {
 
   onUnmounted(() => {
     //startForeground(false)
-    if(adminChannel) {
-      supabase.removeChannel(adminChannel)
-    }
+    // if(adminChannel) {
+    //   supabase.removeChannel(adminChannel)
+    // }
   })
   
 </script>
