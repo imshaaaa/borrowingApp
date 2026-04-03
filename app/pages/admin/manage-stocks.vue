@@ -5,7 +5,7 @@
         <div>
           <LoadingTable v-if="isGettingStocksData" />
           <div v-if="!isGettingStocksData" class="flex justify-end">
-            <UButton color="secondary" variant="subtle" class="mr-2" @click="isQrOpen = true">Scan QR</UButton>
+            <UButton color="secondary" class="mr-2" @click="isQrOpen = true">Scan QR</UButton>
           </div>
           <div v-if="!isGettingStocksData" class="mt-6">
             <UInput v-model="globalFilter" class="mb-2" placeholder="Global Filter Search..." color="secondary" />
@@ -27,7 +27,7 @@
               @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)"
             />
           </div>
-            <UModal title="Edit Selected Equipment" v-model:open="isActionsModalOpen" :dismissible="false" :close="!isUpdatingEquipment">
+            <UModal title="Update Equipment" v-model:open="isActionsModalOpen" :dismissible="false" :close="!isUpdatingEquipment">
               <template #body="{ close }">
                 <UForm :schema="schema" :state="state" @submit="updateStock">
                   <UFormField label="Item name" name="selectedItemName" :error="isItemNameError">
@@ -44,7 +44,7 @@
                   </UFormField>
                   <div class="flex justify-end gap-x-2 mt-6">
                       <UButton color="error" variant="subtle" @click="closeEquipmentModal(close)" :disabled="isUpdatingEquipment">Cancel</UButton>
-                      <UButton v-if="!isUpdatingEquipment" variant='subtle' color="secondary" >View full details</UButton>
+                      <!--<UButton v-if="!isUpdatingEquipment" variant='subtle' color="secondary" >View full details</UButton>-->
                       <UButton v-if="!isUpdatingEquipment" type="submit"  color="secondary" >Update Equipment</UButton>
                       <UButton v-if="isUpdatingEquipment" color="secondary" loading>Updating Equipment ...</UButton>
                   </div>
@@ -72,6 +72,10 @@
                   <p>QR scanner erorr: {{ isQrErrorMsg }}</p>
                 </div>
               </template>
+            </UModal>
+
+            <UModal title="Update Equipment">
+              
             </UModal>
           </div>
         </div>
@@ -269,11 +273,56 @@
 
   const onDetectQr = (detectedCodes) => {
     qrScanResult.value = detectedCodes.map((code) => {
-      return code.rawValue
+
+      try {
+        
+        let data = JSON.parse(code.rawValue)
+      
+        if(!data.id || !data.name || !data.category) {
+          toast.add({
+            title: 'QR error',
+            description: 'Invalid QR CODE DATA!',
+            icon: 'i-lucide-circle-x',
+            color: 'error'
+          })
+          isQrOpen.value = false
+          return
+        }
+        
+        return data
+      } catch(err) {
+        toast.add({
+          title: 'QR error',
+          description: 'Invalid QR CODE DATA!',
+          icon: 'i-lucide-circle-x',
+          color: 'error'
+        })
+        isQrOpen.value = false
+        return
+      }
     })
 
+    let isData = allStocks.value.find(data => data.item_id == qrScanResult.value[0].id)
+
+    if(isData) {
+      toast.add({
+        title: 'QR code scanned successfully.',
+        description: 'Equipment details are ready to be updated.',
+        icon: 'i-lucide-circle-check',
+        color: 'success'
+      })
+      openActionsModal(isData)
+    } else {
+      toast.add({
+        title: 'Data error',
+        description: 'Data doesnt exist in database',
+        icon: 'i-lucide-circle-x',
+        color: 'error'
+      })
+    }
+
     isQrOpen.value = false
-    console.log(qrScanResult.value)
+    //console.log(qrScanResult.value)
   }
 
   const pagination = ref({
