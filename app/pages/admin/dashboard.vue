@@ -77,13 +77,12 @@
     if (permission.display === 'granted') {
       // Create the channel - essential for Android 8.0+
       await LocalNotifications.createChannel({
-        id: 'borrow-alert-channel',
+        id: 'borrow-alert-channel2',
         name: 'Test',
         description: 'Setting up for notification',
         importance: 5,
         visibility: 1,
         vibration: true ,
-        sound: 'default'
       });
       console.log('Channel created and permission granted');
     } else {
@@ -101,9 +100,8 @@
           id: 9999,
           title: 'Technical App',
           body: 'New borrow request!',
-          channelId: 'borrow-alert-channel',
+          channelId: 'borrow-alert-channel2',
           schedule: { 
-          //at: new Date(Date.now() + 500),
           allowWhileIdle: true
         },
         extra: { url: '/admin/borrowed-items' }
