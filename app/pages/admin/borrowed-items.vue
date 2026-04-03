@@ -26,7 +26,8 @@
               </template>
               <template #item_name-cell= "{ row }">
                 <span v-if="row.subRows.length > 1">
-                 {{ row.subRows.map(d => d.original.item).join(', ') }}
+                 <!--{{ row.subRows.map(d => d.original.item).join(', ') }}-->
+                  {{ row.subRows.filter(i => i.original.status == 'Pending' || i.original.status == 'On Going' || i.original.status == 'Overdue').map(d => d.original.item).join(',') }}
                 </span>
                 <span v-else>
                   {{ row.original.item }}
@@ -68,7 +69,7 @@
                   <UBadge v-else-if="row.subRows.every(d => d.original.status == 'Overdue')" variant="subtle" color="error">
                     OVERDUE
                   </UBadge>
-                  <UBadge v-else variant="subtle" color="neutral">
+                  <UBadge v-else-if="row.subRows.some(d => d.original.status == 'Pending' || d.original.status == 'On Going' || d.original.status == 'Overdue' )" variant="subtle" color="neutral">
                     MIXED STATUS
                   </UBadge>
                 </div>
@@ -398,7 +399,7 @@
       }
     }
     
-    console.log(selectedItem.value)
+    console.log('datarow',row)
   }
 
   const openApproveModal = () => {

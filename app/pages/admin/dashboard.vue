@@ -33,14 +33,14 @@
               <p class="text-2xl font-bold mt-4 text-gray-800">43</p>
             </UCard>
           </div>
-          <!--<div class="flex justify-center flex-wrap gap-2">
+          <div class="flex justify-center flex-wrap gap-2">
             <UButton @click="checkPermission">Check permission</UButton>
             <UButton @click="testNotif">Test Notif</UButton>
-            <UButton @click="requestPermission">Request Permission foreground</UButton>
+            <!--<UButton @click="requestPermission">Request Permission foreground</UButton>
             <UButton @click="foregroundCheckPerm">Request Overlay Foreground Permission</UButton>
             <UButton @click="startForegroundService">Start foreground</UButton>
-            <UButton @click="stopForegroundService">Stop foreground</UButton>
-          </div>-->
+            <UButton @click="stopForegroundService">Stop foreground</UButton>-->
+          </div>
         </div>
       </NuxtLayout>
     </IonContent>
@@ -103,7 +103,7 @@
           body: 'New borrow request!',
           channelId: 'test',
           schedule: { 
-          at: new Date(Date.now() + 500),
+          //at: new Date(Date.now() + 500),
           allowWhileIdle: true
         },
         extra: { url: '/admin/borrowed-items' }

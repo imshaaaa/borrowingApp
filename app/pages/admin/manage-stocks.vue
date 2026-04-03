@@ -156,7 +156,7 @@
       let fixStatusForQuantity = stocks.filter(item => item.quantity <= 0 && item.status == 'Available').map(item => item.item_id)
 
       if(fixStatusForQuantity.length > 0) {
-        let { error: errUpdate } = await supabase.from('tbl_item').update({ status: 'Not Available' }).eq('item_id', fixStatusForQuantity)
+        let { error: errUpdate } = await supabase.from('tbl_item').update({ status: 'Not Available' }).in('item_id', fixStatusForQuantity)
 
         if(errUpdate) {
           toast.add({
@@ -165,7 +165,7 @@
             icon: 'i-lucide-circle-x',
             color: 'error'
           })
-          console.log(errUpdate)
+          console.log('errorUpdate?',errUpdate)
           return
         }
 
