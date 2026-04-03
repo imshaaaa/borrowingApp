@@ -77,7 +77,7 @@
     if (permission.display === 'granted') {
       // Create the channel - essential for Android 8.0+
       await LocalNotifications.createChannel({
-        id: 'test',
+        id: 'borrow-alert-channel',
         name: 'Test',
         description: 'Setting up for notification',
         importance: 5,
@@ -101,7 +101,7 @@
           id: 9999,
           title: 'Technical App',
           body: 'New borrow request!',
-          channelId: 'test',
+          channelId: 'borrow-alert-channel',
           schedule: { 
           //at: new Date(Date.now() + 500),
           allowWhileIdle: true
