@@ -190,7 +190,7 @@ watch(open, (isNowOpen) => {
 
     await LocalNotifications.schedule({
       notifications: [{
-        id: 99999,
+        id: Math.floor(Math.random() * 2147483647),
         title: 'Technical App',
         body: `${data.new.borrower_name} wants to borrow ${data.new.quantity} pc(s) of ${data.new.item}`,
         channelId: 'borrow-alert3',
