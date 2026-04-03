@@ -1,6 +1,5 @@
 <template>
   <UApp :toaster="toaster">
-    default
     <slot />
   </UApp>
 </template>

@@ -129,79 +129,78 @@ watch(open, (isNowOpen) => {
     },500)
   }
 
-  // const startAdminListener = async () => {
+  const startAdminListener = async () => {
 
-  //   if(adminChannel) await supabase.removeChannel()
+    if(adminChannel) await supabase.removeChannel()
     
-  //   adminChannel = await supabase
-  //     .channel('admin-notification-channel')
-  //     .on(
-  //       'postgres_changes', 
-  //       {
-  //         event: 'INSERT',
-  //         schema: 'public',
-  //         table: 'tbl_borrowed_item'
-  //       }, (payload) => {
-  //         toast.add({
-  //           title: 'Borrow Request',
-  //           description: `${payload.new.borrower_name} wants to borrow ${payload.new.quantity} pc(s) of ${payload.new.item}`,
-  //           icon: 'i-lucide-circle-check',
-  //           color: 'secondary',
-  //         })
-  //         triggerNotif(payload)
-  //         console.log('notif', payload)
-  //       }
-  //     )
-  //     .subscribe((status) => {
-  //       if(status === 'SUBSCRIBED') {
-  //         console.log('realtime connected')
-  //       }
-  //       if(status === 'CLOSED') {
-  //         console.log('realtime connection error')
-  //       }
-  //     })
-  // }
+    adminChannel = await supabase
+      .channel('admin-notification-channel')
+      .on(
+        'postgres_changes', 
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'tbl_borrowed_item'
+        }, (payload) => {
+          toast.add({
+            title: 'Borrow Request',
+            description: `${payload.new.borrower_name} wants to borrow ${payload.new.quantity} pc(s) of ${payload.new.item}`,
+            icon: 'i-lucide-circle-check',
+            color: 'secondary',
+          })
+          triggerNotif(payload)
+          console.log('notif', payload)
+        }
+      )
+      .subscribe((status) => {
+        if(status === 'SUBSCRIBED') {
+          console.log('realtime connected')
+        }
+        if(status === 'CLOSED') {
+          console.log('realtime connection error')
+        }
+      })
+  }
 
-  // const setupNotification = async () => {
-  //   if(!isNative) return
+  const setupNotification = async () => {
+    if(!isNative) return
 
-  //   let permission = await LocalNotifications.checkPermissions()
-  //   if(permission.display !== 'granted') {
-  //     await LocalNotifications.requestPermissions()
-  //   }
+    let permission = await LocalNotifications.checkPermissions()
+    if(permission.display !== 'granted') {
+      await LocalNotifications.requestPermissions()
+    }
 
-  //   if(permission.display === 'granted') {
-  //     await LocalNotifications.createChannel({
-  //       id: 'borrow-alert',
-  //       name: 'Technical App',
-  //       description: 'Setting up for notification',
-  //       importance: 5,
-  //       visibility: 1,
-  //       vibrate: true
-  //     })
-  //   }
-  // }
+    if(permission.display === 'granted') {
+      await LocalNotifications.createChannel({
+        id: 'borrow-alert3',
+        name: 'Technical App',
+        description: 'Setting up for notification',
+        importance: 5,
+        visibility: 1,
+        vibrate: true
+      })
+    }
+  }
 
-  // const triggerNotif = async (data) => {
-  //   if(!isNative) {
-  //     console.log('Web Notif:', data)
-  //     return
-  //   }
+  const triggerNotif = async (data) => {
+    if(!isNative) {
+      console.log('Web Notif:', data)
+      return
+    }
 
-  //   await LocalNotifications.schedule({
-  //     notifications: [{
-  //       id: Date.now(),
-  //       title: 'Technical App',
-  //       body: 'New borrow request!',
-  //       channelId: 'borrow-alert',
-  //       schedule: { 
-  //       at: new Date(Date.now() + 100),
-  //       allowWhileIdle: true
-  //     },
-  //     extra: { url: '/admin/borrowed-items' }
-  //     }]
-  //   })
-  // }
+    await LocalNotifications.schedule({
+      notifications: [{
+        id: Date.now(),
+        title: 'Technical App',
+        body: `${payload.new.borrower_name} wants to borrow ${payload.new.quantity} pc(s) of ${payload.new.item}`,
+        channelId: 'borrow-alert3',
+        schedule: { 
+        allowWhileIdle: true
+      },
+      extra: { url: '/admin/borrowed-items' }
+      }]
+    })
+  }
 
   // const startForeground = async (start = true) => {
   //   if(!isNative || Capacitor.getPlatform() !== 'android') return
@@ -224,36 +223,36 @@ watch(open, (isNowOpen) => {
   //   }
   // }
 
-  //onMounted(async () => {
-    // let status = await Network.getStatus()
-    // isOnline.value = status.connected
+  onMounted(async () => {
+    let status = await Network.getStatus()
+    isOnline.value = status.connected
 
-    // if(isOnline.value) {
-    //   await setupNotification()
-    //   startAdminListener()
-    //   startForeground(true)
-    // }
+    if(isOnline.value) {
+      await setupNotification()
+      startAdminListener()
+      //startForeground(true)
+    }
 
-    // Network.addListener('networkStatusChange', (s) => {
-    //   isOnline.value = s.connected
-    //   if (s.connected) {
-    //     startAdminListener()
-    //   }
-    // })
+    Network.addListener('networkStatusChange', (s) => {
+      isOnline.value = s.connected
+      if (s.connected) {
+        startAdminListener()
+      }
+    })
 
-    // if (isNative) {
-    //   LocalNotifications.addListener('localNotificationActionPerformed', (notif) => {
-    //     const url = notif.notification.extra?.url
-    //     if (url) navigateTo(url)
-    //   })
-    // }
-  //})
+    if (isNative) {
+      LocalNotifications.addListener('localNotificationActionPerformed', (notif) => {
+        const url = notif.notification.extra?.url
+        if (url) ionRouter.navigate(url, 'forward', 'push');
+      })
+    }
+  })
 
-  //onUnmounted(() => {
-    // startForeground(false)
-    // if(adminChannel) {
-    //   supabase.removeChannel(adminChannel)
-    // }
-  //})
+  onUnmounted(() => {
+    //startForeground(false)
+    if(adminChannel) {
+      supabase.removeChannel(adminChannel)
+    }
+  })
   
 </script>
