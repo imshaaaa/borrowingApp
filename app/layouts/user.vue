@@ -152,7 +152,7 @@ watch(open, (isNowOpen) => {
   
   onMounted(() => {
     App.addListener('backButton', (data) => {
-      if(route.path.includes('/admin') && open == false) {
+      if(route.path.includes('/user') && open == false) {
         isExitApp.value = true
       }
     })
