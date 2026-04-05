@@ -42,6 +42,17 @@
         <slot />
       </div>
     </div>
+    <UModal title="Exit App?" v-model:open="isExitApp" :ui="{ footer: 'justify-end' }">
+      <template #body>
+        <div class="text-gray-700">
+          Are you sure you want to close the app?
+        </div>
+      </template>
+      <template #footer="{ close }">
+        <UButton color="error" variant="soft" @click="close">Cancel</UButton>
+        <UButton color="secondary" @click="exitApp">Exit App</UButton>
+      </template>
+    </UModal>
   </UApp>
 </template>
 
@@ -55,6 +66,8 @@
   const toast = useToast()
   const open = ref(false)
   const isLogoutOpen = ref(false)
+  const route = useRoute()
+  const isExitApp = ref(false)
   
   const profileItems = ref([
     {
@@ -134,4 +147,14 @@ watch(open, (isNowOpen) => {
       })
     },500)
   }
+
+  const exitApp = () => App.exitApp()
+  
+  onMounted(() => {
+    App.addListener('backButton', (data) => {
+      if(route.path.includes('/admin') && open == false) {
+        isExitApp.value = true
+      }
+    })
+  })
 </script>
