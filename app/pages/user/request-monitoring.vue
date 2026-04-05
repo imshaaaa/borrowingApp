@@ -32,7 +32,7 @@
                       <UInput type='number' variant="subtle" color="secondary" v-model="selectedItem.quantity" class="w-40" disabled/>
                   </UFormField>
                   <UFormField label="Room" class="mt-4" name="room">
-                    <UInputMenu color="secondary" variant="subtle" size="xl" class="w-40" placeholder="room" v-model="selectedItem.room" :items="rooms" :disabled="selectedItem.status == 'Returned' || selectedItem.status == 'Request Denied' ? true : false"/>
+                    <UInputMenu color="secondary" variant="subtle" size="xl" class="w-40" placeholder="room" v-model="selectedItem.room" :items="rooms" :disabled="selectedItem.status == 'Returned' || selectedItem.status == 'Request Denied' || selectedItem.status == 'Request Expired' ? true : false"/>
                   </UFormField>
                   <UFormField label="Status" class="mt-4">
                     <UInput color="secondary" variant="subtle" size="xl" class="w-40" placeholder="status" v-model="selectedItem.status" disabled/>
@@ -54,7 +54,7 @@
               <template #footer="{ close }">
                 <UButton color="error" variant="outline" @click="close" size="lg" :disabled="isUpdate">Close</UButton>
                 <span v-if="!isUpdate">  
-                  <UButton v-if="selectedItem.status != 'Request Denied' && selectedItem.status != 'Returned'" type="submit"  color="secondary" size="lg" :disabled="isDisabled" @click="updateItem">Update Changes</UButton>
+                  <UButton v-if="selectedItem.status != 'Request Denied' && selectedItem.status != 'Request Expired'  && selectedItem.status != 'Returned'" type="submit"  color="secondary" size="lg" :disabled="isDisabled" @click="updateItem">Update Changes</UButton>
                 </span>
                 <UButton v-if="isUpdate" size="lg" color="secondary" loading>Updating Changes ...</UButton>
               </template>
@@ -197,7 +197,8 @@
           'Request Denied': 'error',
           'On Going': 'secondary',
           Overdue: 'error',
-          Returned: 'success'
+          Returned: 'success',
+          'Request Expired': 'neutral'
         }[row.getValue('status')]
         
         return h(UBadge, { class: 'capitalize uppercase', variant: 'subtle', color }, () => 

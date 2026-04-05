@@ -36,8 +36,8 @@
         </div>
       </template>
     </UModal>
-    <div class="bg-gray-100 h-full">
-      <div class="px-6">
+    <div class="bg-gray-100 min-h-screen">
+      <div class="px-6 pb-10">
         <br><br><br><br>
         <slot />
       </div>
@@ -59,7 +59,10 @@
   const profileItems = ref([
     {
       label: 'Profile',
-      icon: 'i-lucide-user'
+      icon: 'i-lucide-user',
+      onSelect() {
+        toProfile()
+      }
     },
     {
       label: 'Logout',
@@ -100,6 +103,11 @@ watch(open, (isNowOpen) => {
     open.value = false
   }
 
+  const toProfile = () => {
+    ionRouter.navigate('/profile', 'forward', 'push')
+  }
+
+
   const handleLogout = async () => {
     isLogoutOpen.value = true
     let { error } = await supabase.auth.signOut()
@@ -115,7 +123,7 @@ watch(open, (isNowOpen) => {
     }
     isLogoutOpen.value = false
     userStore.$reset
-    ionRouter.replace('/login')
+    ionRouter.replace('/login', 'root')
     setTimeout(() => {
       toast.add({
         title: 'Logout Successfully!',

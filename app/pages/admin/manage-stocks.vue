@@ -73,10 +73,6 @@
                 </div>
               </template>
             </UModal>
-
-            <UModal title="Update Equipment">
-              
-            </UModal>
           </div>
         </div>
       </NuxtLayout>

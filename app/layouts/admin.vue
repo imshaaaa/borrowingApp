@@ -38,8 +38,8 @@
         </div>
       </template>
     </UModal>
-    <div class="bg-gray-100 h-full">
-      <div class="px-6">
+    <div class="bg-gray-100 min-h-screen">
+      <div class="px-6 pb-10">
         <br><br><br><br>
         <slot />
       </div>
@@ -64,7 +64,10 @@
   const profileItems = ref([
     {
       label: 'Profile',
-      icon: 'i-lucide-user'
+      icon: 'i-lucide-user',
+      onSelect() {
+        toProfile()
+      }
     },
     {
       label: 'Logout',
@@ -90,10 +93,8 @@
     }
   });
 
-// Handle Browser (For testing in Chrome)
 watch(open, (isNowOpen) => {
   if (isNowOpen) {
-    // Add a fake entry to history so 'back' closes the drawer instead of leaving
     history.pushState({ drawer: 'open' }, '');
   }h
 });
@@ -103,8 +104,17 @@ watch(open, (isNowOpen) => {
     open.value = false
   }
 
+  const toProfile = () => {
+    ionRouter.navigate('/profile', 'forward', 'push')
+  }
+
   const handleLogout = async () => {
     isLogoutOpen.value = true
+
+    if(adminChannel) {
+      supabase.removeChannel(adminChannel)
+    }
+    
     let { error } = await supabase.auth.signOut()
     if(error) {
       toast.add({
@@ -117,7 +127,7 @@ watch(open, (isNowOpen) => {
       return
     }
     userStore.$reset
-    ionRouter.replace('/login')
+    ionRouter.replace('/login', 'root')
     setTimeout(() => {
       toast.add({
         title: 'Logout Successfully!',

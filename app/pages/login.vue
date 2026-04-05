@@ -132,7 +132,7 @@
           await userStore.setUserData(userData)
           await nextTick()
           if(userStore.user.user_type == 'Admin') {
-            await ionRouter.replace('/admin/dashboard')
+            await ionRouter.replace('/admin/dashboard', 'root')
             setTimeout(() => {
               toast.add({
                 title: 'Welcome!',
@@ -146,7 +146,7 @@
           
           }
           if(userData.user_type == 'Student' || userData.user_type == 'Teacher' || userData.user_type == 'Staff') {
-            ionRouter.replace('/user/dashboard')
+            ionRouter.replace('/user/dashboard', 'root')
             setTimeout(() => {
               toast.add({
                 title: 'Welcome!',
