@@ -31,5 +31,10 @@
     "vue": "^3.5.27",
     "vue-router": "^4.6.4",
     "yup": "^1.7.1"
+  },
+"pnpm": {
+  "overrides": {
+    "simple-git": "3.33.0"
   }
+}
 }
