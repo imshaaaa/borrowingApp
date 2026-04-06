@@ -146,7 +146,7 @@
           
           }
           if(userData.user_type == 'Student' || userData.user_type == 'Teacher' || userData.user_type == 'Staff') {
-            ionRouter.replace('/user/dashboard', 'root')
+            ionRouter.navigate('/user/dashboard', 'replace', 'root')
             setTimeout(() => {
               toast.add({
                 title: 'Welcome!',

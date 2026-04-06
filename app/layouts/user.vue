@@ -136,7 +136,7 @@ watch(open, (isNowOpen) => {
     }
     isLogoutOpen.value = false
     userStore.$reset
-    ionRouter.replace('/login', 'root')
+    ionRouter.navigate('/login', 'replace', 'root')
     setTimeout(() => {
       toast.add({
         title: 'Logout Successfully!',
