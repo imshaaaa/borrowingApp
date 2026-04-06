@@ -1,10 +1,18 @@
 <template>
+  <IonApp >
+    <NuxtLayout>
+      <IonRouterOutlet />
+    </NuxtLayout>
+  </IonApp>
+</template>
+
+<!--<template>
   <IonApp>
     <NuxtLayout :name="layoutName">
       <IonRouterOutlet />
     </NuxtLayout>
   </IonApp>
-</template>
+</template>-->
 
 <script setup>
   const route = useRoute()

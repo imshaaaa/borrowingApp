@@ -2,7 +2,8 @@
   <IonPage>
     <IonContent>
       <NuxtLayout :name="setLayout">
-        <div class="bg-white rounded-xl px-6 py-4 text-gray-700">
+        <div class="min-h-full bg-gray-100 pt-24 px-6">
+          <div class="bg-white rounded-xl px-6 py-4 text-gray-700">
           <div>
             <p class="text-xl font-bold">Your Details</p>
             <p class="text-xs text-blue-800">This is your profile informations.</p>
@@ -53,6 +54,8 @@
             </UForm>
           </div>
         </div>
+        </div>
+        
       </NuxtLayout>
     </IonContent>
   </IonPage>

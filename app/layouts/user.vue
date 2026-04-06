@@ -15,7 +15,7 @@
                 <UButton icon="i-lucide-layout-dashboard" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('dashboard')">Dashboard</UButton>
                 <UButton icon="i-lucide-box" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('available-items')">Available Items</UButton>
                 <UButton icon="i-lucide-list-restart" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('request-monitoring')">Request Monitoring</UButton>
-                <UButton icon="i-lucide-bell" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('notifications')">Notifications</UButton>
+                <!--<UButton icon="i-lucide-bell" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('notifications')">Notifications</UButton>-->
               </div>
             </div>
           </template>
@@ -23,11 +23,13 @@
         <img src="~/assets/img/aclclogo.jpeg" class="h-9 inline ml-2"/>
       </div>
       <div>
-        <span class="mr-2">{{ userStore.user.firstname }}</span>
         <UDropdownMenu :items="profileItems">
           <UAvatar src="https://cdn.dribbble.com/users/6713991/avatars/normal/441fa8355b0bc25577653d93f0c7d6cc.png?1697551111" size="lg" />
         </UDropdownMenu>
       </div>
+    </div>
+    <div>
+      <slot />
     </div>
    <UModal :close="false" :dismissible="false" v-model:open="isLogoutOpen">
       <template #body>
@@ -36,38 +38,22 @@
         </div>
       </template>
     </UModal>
-    <div class="bg-gray-100 min-h-screen">
-      <div class="px-6 pb-10">
-        <br><br><br><br>
-        <slot />
-      </div>
-    </div>
-    <UModal title="Exit App?" v-model:open="isExitApp" :ui="{ footer: 'justify-end' }">
-      <template #body>
-        <div class="text-gray-700">
-          Are you sure you want to close the app?
-        </div>
-      </template>
-      <template #footer="{ close }">
-        <UButton color="error" variant="soft" @click="close">Cancel</UButton>
-        <UButton color="secondary" @click="exitApp">Exit App</UButton>
-      </template>
-    </UModal>
   </UApp>
 </template>
 
 <script setup>
   import { useBackButton, useIonRouter } from '@ionic/vue';
   import { App } from '@capacitor/app';
+import { useRouter } from 'vue-router';
   
   const supabase = useSupabaseClient()
   const ionRouter = useIonRouter()
+  const router = useRouter()
   const userStore = useUserStore()
   const toast = useToast()
   const open = ref(false)
   const isLogoutOpen = ref(false)
   const route = useRoute()
-  const isExitApp = ref(false)
   
   const profileItems = ref([
     {
@@ -136,7 +122,8 @@ watch(open, (isNowOpen) => {
     }
     isLogoutOpen.value = false
     userStore.$reset
-    ionRouter.navigate('/login', 'replace', 'root')
+    await nextTick()
+    router.replace('/login')
     setTimeout(() => {
       toast.add({
         title: 'Logout Successfully!',
@@ -148,13 +135,4 @@ watch(open, (isNowOpen) => {
     },500)
   }
 
-  const exitApp = () => App.exitApp()
-  
-  onMounted(() => {
-    App.addListener('backButton', (data) => {
-      if(route.path.includes('/user') && open == false) {
-        isExitApp.value = true
-      }
-    })
-  })
-</script>
+  </script>

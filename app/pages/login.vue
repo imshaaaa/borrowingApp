@@ -50,12 +50,14 @@
 </template>
 
 <script setup>
-  import { object, string } from 'yup'
+  import { useRouter } from 'vue-router'
+import { object, string } from 'yup'
   
   const supabase = useSupabaseClient()
   const user = useSupabaseUser()
   const userStore = useUserStore()
   const ionRouter = useIonRouter()
+  const router = useRouter()
   const toast = useToast()
   const show = ref(false)
   const formRef = ref(null)
@@ -132,7 +134,7 @@
           await userStore.setUserData(userData)
           await nextTick()
           if(userStore.user.user_type == 'Admin') {
-            await ionRouter.replace('/admin/dashboard', 'root')
+             router.replace('/admin/dashboard')
             setTimeout(() => {
               toast.add({
                 title: 'Welcome!',
@@ -146,7 +148,7 @@
           
           }
           if(userData.user_type == 'Student' || userData.user_type == 'Teacher' || userData.user_type == 'Staff') {
-            ionRouter.navigate('/user/dashboard', 'replace', 'root')
+            router.replace('/user/dashboard')
             setTimeout(() => {
               toast.add({
                 title: 'Welcome!',

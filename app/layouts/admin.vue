@@ -38,11 +38,8 @@
         </div>
       </template>
     </UModal>
-    <div class="bg-gray-100 min-h-screen">
-      <div class="px-6 pb-10">
-        <br><br><br><br>
-        <slot />
-      </div>
+    <div>
+      <slot />
     </div>
   </UApp>
 </template>
@@ -127,7 +124,8 @@ watch(open, (isNowOpen) => {
       return
     }
     userStore.$reset
-    ionRouter.replace('/login', 'root')
+    await nextTick()
+    router.replace('/login')
     setTimeout(() => {
       toast.add({
         title: 'Logout Successfully!',

@@ -1,8 +1,7 @@
 <template>
   <IonPage>
     <IonContent>
-      <NuxtLayout>
-        <div>
+        <div class="min-h-full bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingUsersData"/>
           <div class="mt-6" v-else>
             <UInput v-model="globalFilter" class="mb-2" placeholder="Global Filter Search..." color="secondary" />
@@ -70,7 +69,6 @@
             </UModal>
           </div>
         </div>
-      </NuxtLayout>
     </IonContent>
   </IonPage>
 </template>

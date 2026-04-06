@@ -1,8 +1,7 @@
 <template>
   <IonPage>
     <IonContent>
-      <NuxtLayout>
-        <div>
+        <div class="min-h-screen bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingBorrowedItems" />
           <div v-else class="mt-6">
             <UInput v-model="globalFilter" class="mb-2" placeholder="Search for an item..." color="secondary" />
@@ -61,7 +60,6 @@
             </UModal>
           </div>
         </div>
-      </NuxtLayout>
     </IonContent>
   </IonPage>
 </template>

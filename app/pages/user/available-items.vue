@@ -1,15 +1,14 @@
 <template>
   <IonPage>
     <IonContent>
-      <NuxtLayout>
-        <div>
+        <div class="min-h-full bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingAvailableData"/>
           <div v-if='!isGettingAvailableData' class="mt-6">
             <UInput v-model="globalFilter" class="mb-2" placeholder="Search for an item..." color="secondary" />
             <UTable ref="table" :data="availableItemsData" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
               <template #actions-cell="{ row }">
                 <UButton color="secondary" variant="subtle" class="mr-2" @click="openBorrowModal(row.original,'reserve')">Reserve</UButton>
-                <UButton color="secondary" @click="openBorrowModal(row.original,'borrow')">
+                <UButton color="secondary" @click="openBorrowModal(row.original,'borrow')" :disabled="isTimePassed">
                   Borrow
                 </UButton>
               </template>
@@ -104,7 +103,6 @@
             </UModal>
           </div>
         </div>
-      </NuxtLayout>
     </IonContent>
   </IonPage>
 </template>
@@ -151,6 +149,7 @@
   const todayDate = dayjs().add(1,'day').format('YYYY-MM-DD')
   const maxDate = dayjs().add(3, 'days').format('YYYY-MM-DD')
   const borrowDateError = ref(null)
+  const recommendedTime = new Date().setHours(20,0,0)
   
   const schema = object({
     borrowerName: string().required('name is required'),
@@ -198,9 +197,9 @@
     }
   }
   
-  const addNewStock = () => {
-    console.log('new stock')
-  }
+  const isTimePassed = computed(() => {
+    return new Date().getTime() > recommendedTime
+  })
   
   const openBorrowModal = (item,type) => {
     state.borrowerName = `${userStore.user.firstname} ${userStore.user.middlename} ${userStore.user.lastname}`
@@ -423,10 +422,10 @@
     } else {
       borrowTimeError.value = null
     }
-    if(newTime > '18:00') {
+    if(newTime > '20:00') {
       state.borrowTime = ''
       state.returnTime = ''
-      borrowTimeError.value = 'last borrow time ends on 6:00PM'
+      borrowTimeError.value = 'last borrow time ends on 8:00PM'
       return
     } else {
       borrowTimeError.value = null

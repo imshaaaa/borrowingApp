@@ -1,8 +1,7 @@
 <template>
   <IonPage>
     <IonContent>
-      <NuxtLayout>
-        <div>
+        <div class="min-h-full bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingStocksData" />
           <div v-if="!isGettingStocksData" class="flex justify-end">
             <UButton color="secondary" class="mr-2" @click="isQrOpen = true">Scan QR</UButton>
@@ -75,7 +74,6 @@
             </UModal>
           </div>
         </div>
-      </NuxtLayout>
     </IonContent>
   </IonPage>
 </template>

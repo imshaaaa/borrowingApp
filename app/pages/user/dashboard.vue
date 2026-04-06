@@ -1,12 +1,11 @@
 <template>
   <IonPage>
     <IonContent>
-      <NuxtLayout>
-        <div>
+        <div class="min-h-full bg-gray-100 pt-24 px-6">
           <div class="flex flex-col gap-4">
             <UCard variant="outline" class="shadow px-2 py-2">
               <div class="flex justify-between">
-                <p class="text-sm font-medium">Total Borrowed Items</p>
+                <p class="text-sm font-medium">Total Borrowed Itemss</p>
                 <UIcon name="i-lucide-box" class="text-blue-500" />
               </div>
               <p class="text-2xl font-bold mt-4 text-gray-800">43</p>
@@ -33,14 +32,39 @@
               <p class="text-2xl font-bold mt-4 text-gray-800">43</p>
             </UCard>
           </div>
+        <UModal title="Exit App?" v-model:open="isExitApp" :ui="{ footer: 'justify-end' }">
+          <template #body>
+            <div class="text-gray-700 text-center">
+              Are you sure you want to close the app?
+            </div>
+          </template>
+          <template #footer="{ close }">
+            <UButton color="error" variant="soft" @click="close">Cancel</UButton>
+            <UButton color="secondary" @click="exitApp">Exit App</UButton>
+          </template>
+        </UModal>
         </div>
-      </NuxtLayout>
     </IonContent>
   </IonPage>
 </template>
 
 <script setup>
+  import { App } from '@capacitor/app';
+
   definePageMeta({
     layout: 'user'
+  })
+
+  const route = useRoute() 
+  const isExitApp = ref(false)
+
+  const exitApp = () => App.exitApp()
+
+  onMounted(() => {
+    App.addListener('backButton', (data) => {
+      if(route.path == '/user/dashboard') {
+        isExitApp.value = true
+      }
+    })
   })
 </script>
