@@ -21,7 +21,7 @@ export default defineNuxtRouteMiddleware(async(to) => {
   // }
 
   if(user.value && publicRoutes) {
-    if(!userStore.user.value && userStore.user.status == 'Approved') {
+    if(!userStore.user.value) {
       
       const { data: userData, error: isError } = await supabase.from('tbl_users').select('*').eq('user_uid',user.value.sub).maybeSingle()
   
