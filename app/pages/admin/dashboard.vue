@@ -5,179 +5,89 @@
           <div class="flex flex-col gap-4">
             <UCard variant="outline" class="shadow px-2 py-2">
               <div class="flex justify-between">
-                <p class="text-sm font-medium">Overall Statistics</p>
+                <p class="text-sm font-medium">Total Borrowed Itemss</p>
                 <UIcon name="i-lucide-box" class="text-blue-500" />
               </div>
-              <p class="text-2xl font-bold mt-4 text-gray-800">{{ user?.sub }}</p>
-            </UCard>
-            <UCard variant="outline" class="shadow px-2 py-2">
-              <div class="flex justify-between">
-                <p class="text-sm font-medium">Recently Borrowed</p>
-                <UIcon name="i-lucide-workflow" class="text-blue-500" />
-              </div>
-              <p class="text-2xl font-bold mt-4 text-gray-800">43</p>
+              <UButton v-if="isGettingData" class="mt-4" variant="soft" color="neutral" loading></UButton>
+              <p v-else class="text-2xl font-bold mt-4 text-gray-800">{{ statsStore.stats.total }}</p>
             </UCard>
             <UCard variant="outline" class="shadow px-2 py-2">
               <div class="flex justify-between">
                 <p class="text-sm font-medium">Pending Requests</p>
+                <UIcon name="i-lucide-workflow" class="text-blue-500" />
+              </div>
+              <UButton v-if="isGettingData" class="mt-4" variant="soft" color="neutral" loading></UButton>
+              <p v-else class="text-2xl font-bold mt-4 text-gray-800">{{ statsStore.stats.pending }}</p>
+            </UCard>
+            <UCard variant="outline" class="shadow px-2 py-2">
+              <div class="flex justify-between">
+                <p class="text-sm font-medium">Overdue Items</p>
                 <UIcon name="i-lucide-clock" class="text-blue-500" />
               </div>
-              <p class="text-2xl font-bold mt-4 text-gray-800">43</p>
+              <UButton v-if="isGettingData" class="mt-4" variant="soft" color="neutral" loading></UButton>
+              <p v-else class="text-2xl font-bold mt-4 text-gray-800">{{ statsStore.stats.overdue }}</p>
             </UCard>
             <UCard variant="outline" class="shadow px-2 py-2">
               <div class="flex justify-between">
                 <p class="text-sm font-medium">Returned Items</p>
                 <UIcon name="i-lucide-archive" class="text-blue-500" />
               </div>
-              <p class="text-2xl font-bold mt-4 text-gray-800">43</p>
+              <UButton v-if="isGettingData" class="mt-4" variant="soft" color="neutral" loading></UButton>
+              <p v-else class="text-2xl font-bold mt-4 text-gray-800">{{ statsStore.stats.returned }}</p>
             </UCard>
           </div>
-          <div class="flex justify-center flex-wrap gap-2">
-            <!--<UButton @click="checkPermission">Check permission</UButton>
-            <UButton @click="testNotif">Test Notif</UButton>
-            <UButton @click="requestPermission">Request Permission foreground</UButton>
-            <UButton @click="foregroundCheckPerm">Request Overlay Foreground Permission</UButton>
-            <UButton @click="startForegroundService">Start foreground</UButton>
-            <UButton @click="stopForegroundService">Stop foreground</UButton>-->
-          </div>
+        
         </div>
     </IonContent>
   </IonPage>
 </template>
 
 <script setup>
+import { onMounted } from "vue"
 
-  import { LocalNotifications } from '@capacitor/local-notifications'
-  import { ForegroundService, ServiceType } from '@capawesome-team/capacitor-android-foreground-service';
-  import { App } from '@capacitor/app';
-  
+
+  const supabase = useSupabaseClient()
+  const userStore = useUserStore()
+  const statsStore  = useStatisticsStore()
+  const toast = useToast()
+  const isGettingData = ref(true)
+
+  const getStatsData = async () => {
+    isGettingData.value = true
+    try {
+      let { data, error } = await supabase
+      .from('tbl_borrowed_item')
+      .select('*')
+      .in('status', ['Pending', 'On Going', 'Overdue', 'Return'])
+
+      if (error) throw error
+
+      if(data) {
+        statsStore.setStats(data)
+        isGettingData.value = false
+      }
+    } catch (error) {
+      toast.add({
+        title: 'Server error',
+        description: 'An error occured while getting data',
+        icon: 'i-lucide-circle-x',
+        color: 'error'
+      })
+      console.log(error)
+      isGettingData.value = false
+    }
+    
+
+
+  }
+
+
   definePageMeta({
     layout: 'admin'
   })
 
-  const user = useSupabaseUser()
-  const userStore = useUserStore()
-  const supabase = useSupabaseClient()
-  const ionRouter = useIonRouter()
-  const route = useRoute() 
-  const isExitApp = ref(false)
-
-
-  console.log(user.value)
-  console.log(userStore.user)
-
-  const checkPermission = async () => {
-  try {
-    let permission = await LocalNotifications.checkPermissions();
-    console.log('Current status:', permission.display);
-
-    if (permission.display !== 'granted') {
-      permission = await LocalNotifications.requestPermissions();
-    }
-
-    if (permission.display === 'granted') {
-      // Create the channel - essential for Android 8.0+
-      await LocalNotifications.createChannel({
-        id: 'borrow-alert-channel2',
-        name: 'Test',
-        description: 'Setting up for notification',
-        importance: 5,
-        visibility: 1,
-        vibration: true ,
-      });
-      console.log('Channel created and permission granted');
-    } else {
-      console.log('Permission denied by user');
-    }
-  } catch (err) {
-    console.error('Permission Error:', err);
-  }
-};
-
-  const testNotif = async () => {
-    try {
-      await LocalNotifications.schedule({
-        notifications: [{
-          id: 9999,
-          title: 'Technical App',
-          body: 'New borrow request!',
-          channelId: 'borrow-alert-channel2',
-          schedule: { 
-          allowWhileIdle: true
-        },
-        extra: { url: '/admin/borrowed-items' }
-        }]
-    })
-    } catch(err) {
-      console.log(err)
-    }
-  }
-
-  const requestPermission = async () => {
-    await ForegroundService.requestPermissions()
-  }
-
-  const foregroundCheckPerm = async () => {
-    await ForegroundService.requestManageOverlayPermission()
-  }
-  
-  const startForegroundService = async () => {
-    await ForegroundService.startForegroundService({
-      id: 1000,
-      title: 'Technical App Service',
-      body: 'Listening for new borrow request',
-      smallIcon: 'push_icon',
-      ongoing: true,
-      silent: false,
-      serviceType: ServiceType.None,
-    });
-  };
-
-  const stopForegroundService = async () => {
-    await ForegroundService.stopForegroundService();
-  };
-
-  const addListeners = async () => {
-    try {
-      await ForegroundService.removeAllListeners();
-  
-      await ForegroundService.addListener('buttonClicked', (event) => {
-        console.log('Foreground button clicked:', event);
-  
-        ForegroundService.stopForegroundService();
-        ForegroundService.moveToForeground();
-      });
-      
-      console.log('Foreground listeners initialized');
-    } catch (error) {
-      console.error('Failed to set up Foreground listeners:', error);
-    }
-  };
-
-  onMounted(async() => {
-    await
-      LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
-      const url = notificationAction.notification.extra?.url;
-    
-      if (url) {
-        console.log('Redirecting to:', url);
-        ionRouter.navigate(url, 'forward', 'push');
-      }
-    })
-
-  const checkLaunchNotification = async () => {
-    const notifications = await LocalNotifications.getDeliveredNotifications();
-    if (notifications.notifications.length > 0) {
-      // Process the most recent one if needed
-      const lastNotif = notifications.notifications[0];
-        if (lastNotif.extra?.url) {
-          ionRouter.navigate(url, 'forward', 'push');
-        }
-    }
-  }
-
-    // addListeners()
-
+  onMounted(() => {
+    getStatsData()
   })
 
 </script>

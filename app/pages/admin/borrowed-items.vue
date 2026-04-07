@@ -5,14 +5,10 @@
           <LoadingTable v-if="isGettingBorrowedData" />
           <div v-if="!isGettingBorrowedData" class="mt-6">
             <UInput v-model="globalFilter" class="mb-2" placeholder="Global Filter Search..." color="secondary" />
-            <UTable :data="borrowedItemsData" ref="table" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }" v-model:grouping="grouping" v-model:expanded="expanded" :grouping-options="groupingOptions" :ui="{
-  base: 'table-fixed',
-    tr: { base: 'group-hover:bg-gray-50/50' },
-    td: { base: 'whitespace-nowrap align-middle' }
-}">
-              <template #borrow_id-cell="{ row, getValue }">
+            <UTable :data="borrowedItemsData" ref="table" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }" v-model:grouping="grouping" v-model:expanded="expanded" :grouping-options="groupingOptions">
+              <template #borrow_id-cell="{ row }">
                 <div class="flex gap-2">
-                  <template v-if="row.getIsGrouped() && row.subRows.length > 1">
+                  <template v-if="row.getIsGrouped() && row.subRows.length > 1" >
                     <UButton
                       color="neutral"
                       variant="ghost"
@@ -72,14 +68,29 @@
                     MIXED STATUS
                   </UBadge>
                 </div>
+                <div v-else>
+                  <UBadge v-if="row.original.status == 'Pending'" variant="subtle" color="warning">
+                    PENDING
+                  </UBadge>
+                  <UBadge v-else-if="row.original.status === 'On Going'" variant="subtle" color="secondary">
+                    ON GOING
+                  </UBadge>
+                  <UBadge v-else-if="row.original.status === 'Overdue'" variant="subtle" color="error">
+                    OVERDUE
+                  </UBadge>
+                </div>
               </template>
               <template #actions-cell="{ row }">
                 <UButton v-if="row.original.status == 'Pending'" variant="soft" color="neutral" @click="openActionsModal(row.original, row)">
                   <UIcon name="i-lucide-pen"></UIcon>
                 </UButton>
-                <UButton v-if="row.original.status == 'On Going' || row.original.status == 'Overdue'" variant="soft" color="neutral" @click="openMarkAsModal(row)">
+                <UButton v-if="row.original.status == 'On Going' && row.subRows.length == 1 || row.subRows.length == 0" variant="soft" color="neutral" @click="openMarkAsModal(row)">
                   <UIcon name="i-lucide-pen"></UIcon>
                 </UButton>
+                <UButton v-if="row.original.status == 'Overdue' && row.subRows.length == 1" variant="soft" color="neutral" @click="openMarkAsModal(row)">
+                  <UIcon name="i-lucide-pen"></UIcon>
+                </UButton>
+                
               </template>
             </UTable>
             <div class="flex justify-center border-t border-default pt-4 px-4">
@@ -110,7 +121,7 @@
               <template #footer="{ close }">
                 <UButton color="error" @click="close" variant="subtle" :disabled="isApproving || isDeclining || isMarkAsReturning">Cancel</UButton>
                 <UButton v-if="confirmType == 'decline' && !isDeclining" color="error" @click="declineRequestItem">Decline</UButton>
-                <UButton v-if="confirmType == 'decline' && isDeclining" color="error" @click="" loading>Declining Request ....</UButton>
+                <UButton v-if="confirmType == 'decline' && isDeclining" color="error" loading>Declining Request ....</UButton>
                 <UButton v-if="confirmType == 'approve' && !isApproving" color="secondary" @click='approveRequestItem'>Approve</UButton>
                 <UButton color="secondary" v-if="isApproving && confirmType == 'approve'" loading>Approving Request...</UButton>
                 <UButton v-if="confirmType === 'asReturn' && !isMarkAsReturning" color="secondary" @click='returnItem'>Return</UButton>
@@ -191,6 +202,13 @@
         return returnDateTime.isBefore(now) && item.status == 'On Going'
       }).map(item => item.form_id)
 
+      const expiredRequest = data.filter(item => {
+        let borrowDate = dayjs(item.borrow_date).startOf('day').add(20,'hours')
+        if(item.status == 'Pending') {
+          return dayjs().isAfter(borrowDate)
+        }
+      }).map(i => i.form_id)
+
       if(overdueIds.length > 0) {
         let { error: updateErr } = await supabase.from('tbl_borrowed_item').update({ status: 'Overdue' }).in('form_id', overdueIds)
 
@@ -199,10 +217,18 @@
         if(updateErr) throw updateErr
       }
 
-      let finalData = await data.map(item => {
+      if(expiredRequest.length > 0) {
+        let { error: expiredErr } = await supabase.from('tbl_borrowed_item').update({ status: 'Request Expired' }).in('form_id', expiredRequest)
+
+        if(expiredErr) throw expiredErr
+      }
+
+
+      let finalData = await data.filter(i => !expiredRequest.includes(i.form_id)).map(item => {
         if(overdueIds.includes(item.form_id)) {
           return {...item, status: 'Overdue'}
         }
+      
         return item
       })
 
@@ -440,10 +466,33 @@
   const returnItem = async() => {
     isMarkAsReturning.value = true
     let targetIds = selectedRowData.value.form_ids
+    let itemsToReturn = borrowedItemsData.value.filter(i => targetIds.includes(i.form_id)).map(i => ({ item_name: i.item, quantity: i.quantity }))
 
-    let { error } = await supabase.from('tbl_borrowed_item').update({ status: 'Return' }).in('form_id', targetIds)
+    let { data: stocks, error: stockErr } = await supabase.from('tbl_item').select('quantity').eq('item_name', itemsToReturn[0].item_name)
 
-    if(error) {
+    if(stockErr) {
+      toast.add({
+        title: 'Server error',
+        description: 'An error occured while updating data',
+        icon: 'i-lucide-circle-x',
+        color: 'error'
+      })
+      console.log(stockErr)
+      isConfirmModalOpen.value = false
+      isMarkAsReturning.value = false
+      return
+    }
+
+      let stockQuantity = stocks[0].quantity
+      let newQuantity = stockQuantity + parseInt(itemsToReturn[0].quantity)
+
+    console.log('items to return', itemsToReturn)
+    console.log('stock quantity', stockQuantity)
+    console.log('new quantity', newQuantity)
+
+     let { error: setError } = await supabase.from('tbl_borrowed_item').update({ status: 'Return' }).in('form_id', targetIds)
+
+    if(setError) {
       toast.add({
         title: 'Server error',
         description: 'An error occured while updating data',
@@ -451,6 +500,21 @@
         color: 'error'
       })
     return
+    }
+
+    let { error: setQuantityError } = await supabase.from('tbl_item').update({ quantity: newQuantity, status: 'Available' }).eq('item_name', itemsToReturn[0].item_name)
+
+    if(setQuantityError) {
+      toast.add({
+        title: 'Server error',
+        description: 'An error occured while updating data',
+        icon: 'i-lucide-circle-x',
+        color: 'error'
+      })
+      console.log(setQuantityError)
+      isConfirmModalOpen.value = false
+      isMarkAsReturning.value = false
+      return
     }
 
     borrowedItemsData.value = borrowedItemsData.value.filter(d => !targetIds.includes(d.form_id))

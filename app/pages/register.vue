@@ -34,6 +34,12 @@
           <UFormField label="Year Level" name="yearLevel" class="mt-4" v-if="state.registerAs == 'Student'">
             <USelect color="secondary" variant="subtle" v-model="state.yearLevel" :items="yearLevelItems" size="xl" class="w-full" placeholder="Select year level"/>
           </UFormField>
+          <UFormField label="Section" name="section" class="mt-4" v-if="state.registerAs == 'Student'">
+            <UInput color="secondary" variant="subtle" v-model="state.section" size="xl" class="w-full" placeholder="e.g BSIT22C"/>
+          </UFormField>
+          <UFormField label="Student Role" name="specificRole" class="mt-4" v-if="state.registerAs == 'Student'">
+            <USelect color="secondary" variant="subtle" v-model="state.specificRole" :items="specificItems" size="xl" class="w-full" placeholder="Select role"/>
+          </UFormField>
           <UFormField label="Department" name="department" class="mt-4" v-if="state.registerAs == 'Teacher'">
             <USelect color="secondary" variant="subtle" v-model="state.department" :items="teachersDepartment" size="xl" class="w-full" placeholder="Select department"/>
           </UFormField>
@@ -136,6 +142,7 @@
   const department = ref(['Senior High School','Computer Studies','Hospitality','General Education','Business & Accountancy','Records Section /Registrar','Finance','Admission','Guidance','Human Resources','Library Service Scholarship'])
   const teachersDepartment = ref(['Senior High School','Computer Studies','Hospitality','General Education','Business & Accountancy'])
   const staffDepartment = ref(['Records Section /Registrar','Finance','Admission','Guidance','Human Resources','Library Service Scholarship'])
+  const specificItems = ref(['Mayor', 'Vice Mayor', 'Secretary'])
   
   const studentIdMask = {
     mask: 'A##-##-####-AAA###',
@@ -171,9 +178,19 @@
       then: (schema) => schema.trim().required('course is required'),
       otherwise: (schema) => schema.strip()
     }),
+    section: string().when('registerAs', {
+      is: 'Student',
+      then: (schema) => schema.trim().required('section is required'),
+      otherwise: (schema) => schema.strip()
+    }),
     yearLevel: string().when('registerAs', {
       is: 'Student',
       then: (schema) => schema.trim().required('year level is required'),
+      otherwise: (schema) => schema.strip()
+    }),
+    specificRole: string().when('registerAs', {
+      is: 'Student',
+      then: (schema) => schema.trim().required('specific role is required'),
       otherwise: (schema) => schema.strip()
     }),
     department: string().when('registerAs', {
@@ -197,6 +214,8 @@
     teacherStaffID: undefined,
     courses: undefined,
     yearLevel: undefined,
+    section: undefined,
+    specificRole: undefined,
     department: undefined,
     contact: undefined,
     email: undefined,
@@ -240,8 +259,10 @@
           lastname: state.lastname,
           student_id: state.studentID,
           employee_id: state.teacherStaffID,
-          course: state.courses,
+          course: state.courses,  
           year_level: state.yearLevel,
+          section: state.section,
+          student_role: state.specificRole,
           department: state.department,
           contact_number: state.contact,
           email: state.email,
@@ -259,13 +280,13 @@
         }
           toast.add({
             title: 'Account created successfully',
-            description: 'Pending for admin approval. redirecting...',
+            description: 'Pending for admin approval. redirected',
             icon: 'i-lucide-user-check',
             color: 'success'
           })
         setTimeout(() => {
           toLogin()
-        }, 2000)
+        }, 500)
         isSignUp.value = await false
       }
     } catch(err) {

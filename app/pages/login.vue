@@ -187,7 +187,6 @@ import { object, string } from 'yup'
   }
 
   onMounted(() => {
-    console.log('login',user.value)
-    console.log('login-user-store',userStore.value)
+    console.log("isLogged in?", user.value)
   })
 </script>

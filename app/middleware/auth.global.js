@@ -1,15 +1,15 @@
 export default defineNuxtRouteMiddleware(async(to) => {
+  const { $pinia } = useNuxtApp()
   const user = useSupabaseUser()
-  const userStore = useUserStore()
+  const userStore = useUserStore($pinia)
   const supabase = useSupabaseClient()
-  const ionRouter = useIonRouter()
-  const toast = useToast()
 
   const publicRoutes = to.path === '/login' || to.path === '/register'
 
   if(!userStore.user.id && !publicRoutes) {
     console.log('happened here?')
     //supabase.auth.signOut()
+    setPageLayout('default')
     return navigateTo('/login', { replace: true })
   }
 
@@ -21,7 +21,7 @@ export default defineNuxtRouteMiddleware(async(to) => {
   }
 
   if(user.value && publicRoutes) {
-    if(!userStore.user.value) {
+    if(!userStore.user.value && userStore.user.status == 'Approved') {
       
       const { data: userData, error: isError } = await supabase.from('tbl_users').select('*').eq('user_uid',user.value.sub).maybeSingle()
   
@@ -36,5 +36,13 @@ export default defineNuxtRouteMiddleware(async(to) => {
     if(userStore.user.user_type == 'Admin') {
       return navigateTo('/admin/dashboard', { replace: true })
     }
+    if(userStore.user.user_type == 'Student') {
+      return navigateTo('/user/dashboard', { replace: true })
+    }
+  } else {
+    await supabase.auth.signOut()
+    userStore.$reset()
+    setPageLayout('default')
+    return navigateTo('/login', { replace: true })
   }
 })

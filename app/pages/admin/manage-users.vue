@@ -298,6 +298,7 @@
         const color = {
           Pending: 'warning',
           Approved: 'success',
+          Disabled: 'neutral'
         }[row.getValue('status')]
         
         return h(UBadge, { class: 'capitalize uppercase', variant: 'subtle', color }, () => 

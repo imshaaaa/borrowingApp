@@ -7,8 +7,8 @@
           <template #content>
             <div class="min-w-60 px-4 py-6">
               <div class="flex gap-x-4">
-                <img src="https://cdn.dribbble.com/users/6713991/avatars/normal/441fa8355b0bc25577653d93f0c7d6cc.png?1697551111" class="h-12 rounded-full"/>
-                <p class="text-gray-800 font-bold">{{ userStore.user.firstname }}, <span class="block text-xs text-gray-400">{{ userStore.user.user_type }}</span></p>
+                <UAvatar :alt="userStore.user.fullname" size="xl"/>
+                <p class="text-gray-800 font-bold">{{ userStore.user.firstname }} {{ userStore.user.middlename }} {{ userStore.user.lastname }} <span class="block text-xs text-gray-400">{{ userStore.user.user_type }}</span></p>
               </div>
               <div class="border border-gray-100 mt-4"></div>
               <div class="text-gray-800 mt-8 flex flex-col gap-2">
@@ -25,9 +25,8 @@
         <img src="~/assets/img/aclclogo.jpeg" class="h-9 inline ml-2"/>
       </div>
       <div class="flex justify-center items-center gap-2">
-        <p>{{ userStore.user.firstname }}</p>
         <UDropdownMenu :items="profileItems">
-          <UAvatar src="https://cdn.dribbble.com/users/6713991/avatars/normal/441fa8355b0bc25577653d93f0c7d6cc.png?1697551111" size="lg" />
+          <UAvatar :alt="userStore.user.fullname" size="xl" />
         </UDropdownMenu>
       </div>
     </div>
@@ -118,7 +117,7 @@ watch(open, (isNowOpen) => {
   }
 
   const toProfile = () => {
-    ionRouter.navigate('/profile', 'forward', 'push')
+    ionRouter.navigate('/admin/profile', 'forward', 'push')
   }
 
   const handleLogout = async () => {
