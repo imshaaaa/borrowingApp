@@ -13,12 +13,12 @@ export default defineNuxtRouteMiddleware(async(to) => {
     return navigateTo('/login', { replace: true })
   }
 
-  if(to.path === '/') {
-    setTimeout(() => {
-      return user.value ? navigateTo('/admin/dashboard', { replace: true }) : navigateTo('/login', { replace: true })
-    },2000)
+  // if(to.path === '/') {
+  //   setTimeout(() => {
+  //     return user.value ? navigateTo('/admin/dashboard', { replace: true }) : navigateTo('/login', { replace: true })
+  //   },2000)
     
-  }
+  // }
 
   if(user.value && publicRoutes) {
     if(!userStore.user.value && userStore.user.status == 'Approved') {
@@ -40,9 +40,9 @@ export default defineNuxtRouteMiddleware(async(to) => {
       return navigateTo('/user/dashboard', { replace: true })
     }
   } else {
-    await supabase.auth.signOut()
-    userStore.$reset()
-    setPageLayout('default')
-    return navigateTo('/login', { replace: true })
+    // await supabase.auth.signOut()
+    // userStore.$reset()
+    // setPageLayout('default')
+    // return navigateTo('/login', { replace: true })
   }
 })
