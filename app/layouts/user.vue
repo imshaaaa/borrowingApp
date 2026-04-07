@@ -38,13 +38,25 @@
         </div>
       </template>
     </UModal>
+    <UModal title="Exit App?" v-model:open="isExitApp" :ui="{ footer: 'justify-end' }">
+      <template #body>
+            <div class="text-gray-700 text-center">
+              Are you sure you want to close the app?
+            </div>
+          </template>
+          <template #footer="{ close }">
+            <UButton color="error" variant="soft" @click="close">Cancel</UButton>
+            <UButton color="secondary" @click="exitApp">Exit App</UButton>
+          </template>
+        </UModal>
   </UApp>
 </template>
 
 <script setup>
   import { useBackButton, useIonRouter } from '@ionic/vue';
   import { App } from '@capacitor/app';
-import { useRouter } from 'vue-router';
+  import { useRouter } from 'vue-router';
+import { onMounted } from 'vue';
   
   const supabase = useSupabaseClient()
   const ionRouter = useIonRouter()
@@ -54,6 +66,9 @@ import { useRouter } from 'vue-router';
   const open = ref(false)
   const isLogoutOpen = ref(false)
   const route = useRoute()
+  const isExitApp = ref(false)
+
+  const exitApp = () => App.exitApp()
   
   const profileItems = ref([
     {
@@ -134,5 +149,15 @@ watch(open, (isNowOpen) => {
       })
     },500)
   }
+
+  onMounted(() => {
+    App.addListener('backButton', (data) => {
+      if(ionRouter.canGoBack()) {
+        ionRouter.goBack()
+      } else{
+        isExitApp.value = true
+      }
+    })
+  })
 
   </script>

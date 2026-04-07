@@ -2,10 +2,5 @@
   "appId": "com.technical.app2",
   "appName": "TechnicalApp",
   "webDir": "dist",
-  "bundledWebRuntime": false,
-  "server": {
-    "url": "http://192.168.254.116:3000",
-    "cleartext": true,
-    "androidScheme": "http"
-  }
+  "bundledWebRuntime": false
 }

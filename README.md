@@ -73,3 +73,10 @@ bun run preview
 ```
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+
+,
+  "server": {
+    "url": "http://10.0.0.50:3000",
+    "cleartext": true,
+    "androidScheme": "http"
+  }

@@ -32,17 +32,7 @@
               <p class="text-2xl font-bold mt-4 text-gray-800">43</p>
             </UCard>
           </div>
-        <UModal title="Exit App?" v-model:open="isExitApp" :ui="{ footer: 'justify-end' }">
-          <template #body>
-            <div class="text-gray-700 text-center">
-              Are you sure you want to close the app?
-            </div>
-          </template>
-          <template #footer="{ close }">
-            <UButton color="error" variant="soft" @click="close">Cancel</UButton>
-            <UButton color="secondary" @click="exitApp">Exit App</UButton>
-          </template>
-        </UModal>
+        
         </div>
     </IonContent>
   </IonPage>
@@ -52,19 +42,19 @@
   import { App } from '@capacitor/app';
 
   definePageMeta({
-    layout: 'user'
+    layout: 'admin'
   })
 
-  const route = useRoute() 
-  const isExitApp = ref(false)
+  // const route = useRoute() 
+  // const isExitApp = ref(false)
 
-  const exitApp = () => App.exitApp()
+  // const exitApp = () => App.exitApp()
 
-  onMounted(() => {
-    App.addListener('backButton', (data) => {
-      if(route.path == '/user/dashboard') {
-        isExitApp.value = true
-      }
-    })
-  })
+  // onMounted(() => {
+  //   App.addListener('backButton', (data) => {
+  //     if(route.path == '/user/dashboard') {
+  //       isExitApp.value = true
+  //     }
+  //   })
+  // })
 </script>

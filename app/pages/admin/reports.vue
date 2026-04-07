@@ -1,8 +1,7 @@
 <template>
   <IonPage>
     <IonContent>
-      <NuxtLayout>
-        <div>
+        <div class="min-h-full bg-gray-100 pt-24 px-6">
           <UTabs :items="tabsItem" color="secondary">
             <template #user>
               <div class="bg-white py-2 px-5 rounded-lg">
@@ -123,7 +122,6 @@
             </template>
           </UTabs>
         </div>
-      </NuxtLayout>
     </IonContent>
   </IonPage>
 </template>

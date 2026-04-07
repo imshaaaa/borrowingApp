@@ -33,24 +33,13 @@
             </UCard>
           </div>
           <div class="flex justify-center flex-wrap gap-2">
-            <UButton @click="checkPermission">Check permission</UButton>
+            <!--<UButton @click="checkPermission">Check permission</UButton>
             <UButton @click="testNotif">Test Notif</UButton>
-            <!--<UButton @click="requestPermission">Request Permission foreground</UButton>
+            <UButton @click="requestPermission">Request Permission foreground</UButton>
             <UButton @click="foregroundCheckPerm">Request Overlay Foreground Permission</UButton>
             <UButton @click="startForegroundService">Start foreground</UButton>
             <UButton @click="stopForegroundService">Stop foreground</UButton>-->
           </div>
-          <UModal title="Exit App?" v-model:open="isExitApp" :ui="{ footer: 'justify-end' }">
-          <template #body>
-            <div class="text-gray-700 text-center">
-              Are you sure you want to close the app?
-            </div>
-          </template>
-          <template #footer="{ close }">
-            <UButton color="error" variant="soft" @click="close">Cancel</UButton>
-            <UButton color="secondary" @click="exitApp">Exit App</UButton>
-          </template>
-        </UModal>
         </div>
     </IonContent>
   </IonPage>
@@ -165,8 +154,6 @@
     }
   };
 
-  const exitApp = () => App.exitApp()
-
   onMounted(async() => {
     await
       LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
@@ -189,13 +176,8 @@
     }
   }
 
-    addListeners()
+    // addListeners()
 
-    App.addListener('backButton', (data) => {
-      if(route.path == '/admin/dashboard') {
-        isExitApp.value = true
-      }
-    })
   })
 
 </script>

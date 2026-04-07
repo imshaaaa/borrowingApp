@@ -38,6 +38,17 @@
         </div>
       </template>
     </UModal>
+    <UModal title="Exit App?" v-model:open="isExitApp" :ui="{ footer: 'justify-end' }">
+      <template #body>
+            <div class="text-gray-700 text-center">
+              Are you sure you want to close the app?
+            </div>
+          </template>
+          <template #footer="{ close }">
+            <UButton color="error" variant="soft" @click="close">Cancel</UButton>
+            <UButton color="secondary" @click="exitApp">Exit App</UButton>
+          </template>
+        </UModal>
     <div>
       <slot />
     </div>
@@ -54,10 +65,15 @@
 
   const supabase = useSupabaseClient()
   const ionRouter = useIonRouter()
+  const router = useRouter()
   const userStore = useUserStore()
   const toast = useToast()
   const open = ref(false)
   const isLogoutOpen = ref(false)
+  const isExitApp = ref(false)
+
+  const exitApp = () => App.exitApp()
+
   const profileItems = ref([
     {
       label: 'Profile',
@@ -254,6 +270,15 @@ watch(open, (isNowOpen) => {
         if (url) ionRouter.navigate(url, 'forward', 'push');
       })
     }
+
+    App.addListener('backButton', (data) => {
+      if(ionRouter.canGoBack()) {
+        ionRouter.goBack()
+      } else{
+        isExitApp.value = true
+      }
+    })
+
   })
 
   onUnmounted(() => {

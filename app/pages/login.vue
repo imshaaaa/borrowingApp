@@ -134,7 +134,7 @@ import { object, string } from 'yup'
           await userStore.setUserData(userData)
           await nextTick()
           if(userStore.user.user_type == 'Admin') {
-             router.replace('/admin/dashboard')
+             await router.replace('/admin/dashboard')
             setTimeout(() => {
               toast.add({
                 title: 'Welcome!',
@@ -148,7 +148,7 @@ import { object, string } from 'yup'
           
           }
           if(userData.user_type == 'Student' || userData.user_type == 'Teacher' || userData.user_type == 'Staff') {
-            router.replace('/user/dashboard')
+            await router.replace('/user/dashboard')
             setTimeout(() => {
               toast.add({
                 title: 'Welcome!',
