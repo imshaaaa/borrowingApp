@@ -6,15 +6,10 @@
   </IonApp>
 </template>
 
-<!--<template>
-  <IonApp>
-    <NuxtLayout :name="layoutName">
-      <IonRouterOutlet />
-    </NuxtLayout>
-  </IonApp>
-</template>-->
-
 <script setup>
-  const route = useRoute()
-  const layoutName = computed(() => route.meta.layout || 'default')
+  import { StatusBar, Style } from '@capacitor/status-bar';
+
+  onMounted(async() => {
+    await StatusBar.setStyle({ style: Style.Light });
+  })  
 </script>

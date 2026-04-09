@@ -4,7 +4,7 @@
         <div class="min-h-full bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingBorrowedData" />
           <div v-if="!isGettingBorrowedData" class="mt-6">
-            <div class="flex justify-between mb-2">
+            <div class="flex justify-between mb-2 gap-4">
               <UInput v-model="globalFilter" placeholder="Search" color="secondary">
                 <template v-if="globalFilter.length" #trailing>
                   <UButton
@@ -509,12 +509,13 @@
 
       let stockQuantity = stocks[0].quantity
       let newQuantity = stockQuantity + parseInt(itemsToReturn[0].quantity)
+      let currentReturnTime = dayjs().format('HH:mm')
 
     console.log('items to return', itemsToReturn)
     console.log('stock quantity', stockQuantity)
     console.log('new quantity', newQuantity)
 
-     let { error: setError } = await supabase.from('tbl_borrowed_item').update({ status: 'Return' }).in('form_id', targetIds)
+     let { error: setError } = await supabase.from('tbl_borrowed_item').update({ status: 'Return', return_time: currentReturnTime }).in('form_id', targetIds)
 
     if(setError) {
       toast.add({

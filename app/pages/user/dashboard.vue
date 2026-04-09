@@ -1,7 +1,7 @@
 <template>
   <IonPage>
     <IonContent>
-        <div class="min-h-full bg-gray-100 pt-24 px-6">
+        <div class="min-h-full bg-gray-100 pt-24 px-6 mt-6">
           <div class="flex flex-col gap-4">
             <UCard variant="outline" class="shadow px-2 py-2">
               <div class="flex justify-between">

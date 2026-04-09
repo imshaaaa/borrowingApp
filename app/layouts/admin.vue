@@ -1,23 +1,23 @@
 <template>
   <UApp :toaster="toaster">
-    <div class="fixed top-0 left-0 w-full py-[12px] px-4 shadow-sm bg-white flex items-center justify-between z-50">
+    <div class="pt-[env(safe-area-inset-top)] fixed top-0 left-0 w-full py-[12px] px-4 shadow-sm bg-white flex items-center justify-between z-50">
       <div class="flex items-center">
         <UDrawer direction="left" v-model:open=open>
          <UButton icon="i-lucide-menu" size="xl" variant="ghost" color="neutral"/>
           <template #content>
-            <div class="min-w-60 px-4 py-6">
+            <div class="min-w-60 px-4 py-6 pt-[env(safe-area-inset-top)]">
               <div class="flex gap-x-4">
                 <UAvatar :alt="userStore.user.fullname" size="xl"/>
                 <p class="text-gray-800 font-bold">{{ userStore.user.firstname }} {{ userStore.user.middlename }} {{ userStore.user.lastname }} <span class="block text-xs text-gray-400">{{ userStore.user.user_type }}</span></p>
               </div>
               <div class="border border-gray-100 mt-4"></div>
               <div class="text-gray-800 mt-8 flex flex-col gap-2">
-                <UButton icon="i-lucide-layout-dashboard" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('dashboard')">Dashboard</UButton>
-                <UButton icon="i-lucide-box" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('manage-stocks')">Manage Stocks</UButton>
-                <UButton icon="i-lucide-workflow" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('borrowed-items')">Borrowed Items</UButton>
-                <UButton icon="i-lucide-users" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('manage-users')">Manage Users</UButton>
+                <UButton icon="i-lucide-layout-dashboard" size="lg" color="neutral" :variant="activePath === '/admin/dashboard' ? 'solid' : 'ghost'" class="w-full" @click="toLink('dashboard')">Dashboard</UButton>
+                <UButton icon="i-lucide-box" size="lg" color="neutral" :variant="activePath === '/admin/manage-stocks' ? 'solid' : 'ghost'" class="w-full" @click="toLink('manage-stocks')">Manage Equipments</UButton>
+                <UButton icon="i-lucide-workflow" size="lg" color="neutral" :variant="activePath === '/admin/borrowed-items' ? 'solid' : 'ghost'" class="w-full" @click="toLink('borrowed-items')">Borrowed Equipments</UButton>
+                <UButton icon="i-lucide-users" size="lg" color="neutral" :variant="activePath === '/admin/manage-users' ? 'solid' : 'ghost'" class="w-full" @click="toLink('manage-users')">Manage Users</UButton>
                 <!--<UButton icon="i-lucide-file-chart-column" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('reports')">Reports</UButton>-->
-                <UButton icon="i-lucide-history" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('history')">History</UButton>
+                <UButton icon="i-lucide-history" size="lg" color="neutral" :variant="activePath === '/admin/history' ? 'solid' : 'ghost'" class="w-full" @click="toLink('history')">History</UButton>
               </div>
             </div>
           </template>
@@ -61,15 +61,21 @@
   import { Network } from '@capacitor/network'
   //import { ForegroundService } from '@capawesome-team/capacitor-android-foreground-service';
   import { LocalNotifications } from '@capacitor/local-notifications'
+  //import { ref } from 'yup';
 
   const supabase = useSupabaseClient()
   const ionRouter = useIonRouter()
   const router = useRouter()
+  const route = useRoute()
   const userStore = useUserStore()
   const toast = useToast()
   const open = ref(false)
   const isLogoutOpen = ref(false)
   const isExitApp = ref(false)
+  const activePath = useState('activePath', () => route.path)
+  let adminChannel = null
+  const isNative = Capacitor.isNativePlatform()
+  const isOnline = ref(true)
 
   const exitApp = () => App.exitApp()
 
@@ -77,6 +83,7 @@
     {
       label: 'Profile',
       icon: 'i-lucide-user',
+      class: activePath === '/admin/profile' ? 'bg-gray-700' : '',
       onSelect() {
         toProfile()
       }
@@ -93,9 +100,6 @@
     position: 'top-right',
     duration: 3000
   }
-  let adminChannel = null
-  const isNative = Capacitor.isNativePlatform()
-  const isOnline = ref(true)
   
   useBackButton(10, (processNextHandler) => {
     if (open.value) {
@@ -126,7 +130,7 @@ watch(open, (isNowOpen) => {
     if(adminChannel) {
       supabase.removeChannel(adminChannel)
     }
-    
+
     let { error } = await supabase.auth.signOut()
     if(error) {
       toast.add({
@@ -138,6 +142,7 @@ watch(open, (isNowOpen) => {
       console.log(error)
       return
     }
+    isLogoutOpen.value = false
     userStore.$reset
     await nextTick()
     router.replace('/login')
@@ -249,17 +254,30 @@ watch(open, (isNowOpen) => {
   onMounted(async () => {
     let status = await Network.getStatus()
     isOnline.value = status.connected
+    let lastStatus = null
 
     if(isOnline.value) {
       await setupNotification()
       startAdminListener()
+      console.log('App is online')
       //startForeground(true)
     }
 
     Network.addListener('networkStatusChange', (s) => {
       isOnline.value = s.connected
+
+      if(lastStatus !== null && lastStatus.connected !== s.connected && lastStatus.connectionType !== s.connectionType) {
+          console.log('ignored Network status changed:', s)
+          return
+      }
+
+      lastStatus = s
+
       if (s.connected) {
         startAdminListener()
+        console.log('App is back online status changed:', s)
+      } else { 
+        console.log('App is offline status changed:', s)
       }
     })
 

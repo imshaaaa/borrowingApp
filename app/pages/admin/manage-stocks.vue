@@ -1,14 +1,14 @@
 <template>
   <IonPage>
     <IonContent>
-        <div class="min-h-full bg-gray-100 pt-24 px-6">
+        <div class="min-h-full bg-gray-100 pt-24 px-6 mt-6">
           <LoadingTable v-if="isGettingStocksData" />
           <div v-if="!isGettingStocksData" class="flex justify-end">
             <UButton color="secondary" class="mr-2" @click="isQrOpen = true">Scan QR</UButton>
           </div>
           <div v-if="!isGettingStocksData" class="mt-6">
-            <div class="flex justify-between mb-2 gap-2 flex-wrap">
-              <UInput v-model="globalFilter" placeholder="Search" color="secondary">
+            <div class="flex justify-between mb-4 gap-x-4 gap-y-2 flex-wrap">
+              <UInput v-model="globalFilter" placeholder="Search" color="secondary" class="w-full sm:w-auto">
                 <template v-if="globalFilter.length" #trailing>
                   <UButton
                     color="neutral"
@@ -20,8 +20,10 @@
                   />
                 </template>
               </UInput>
-              <USelect v-model="Filter" class="w-auto" color="secondary" variant="outline" :items="FilterItems"/>
-              <USelect v-model="statusFilter" class="w-auto" color="secondary" variant="outline" :items="statusFilterItems"/>
+              <div class="flex gap-2">
+                <USelect v-model="Filter" class="w-auto" color="secondary" variant="outline" :items="FilterItems"/>
+                <USelect v-model="statusFilter" class="w-auto" color="secondary" variant="outline" :items="statusFilterItems"/>
+              </div>
             </div>
             <UTable ref="table" :data="filteredStocksByStatus" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
               <template #actions-cell="{ row }">

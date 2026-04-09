@@ -1,2 +1,14 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+}
+
+#headlessui-portal-root {
+  padding-top: var(--sat);
+}
+
+.u-toaster {
+  top: var(--sat) !important;
+}

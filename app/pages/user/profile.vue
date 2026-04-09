@@ -1,7 +1,7 @@
 <template>
   <IonPage>
     <IonContent>
-        <div class="min-h-screen bg-gray-100 pt-24 px-6 pb-10">
+        <div class="min-h-screen bg-gray-100 pt-24 px-6 pb-10 mt-6">
           <div class="bg-white rounded-xl px-6 py-4 text-gray-700">
           <div>
             <p class="text-xl font-bold">Your Details</p>

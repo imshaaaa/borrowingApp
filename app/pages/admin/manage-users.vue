@@ -4,7 +4,7 @@
         <div class="min-h-full bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingUsersData"/>
           <div class="mt-6" v-else>
-            <div class="flex justify-between mb-2">
+            <div class="flex justify-between mb-2 gap-4">
               <UInput v-model="globalFilter" placeholder="Search" color="secondary">
                 <template v-if="globalFilter.length" #trailing>
                   <UButton

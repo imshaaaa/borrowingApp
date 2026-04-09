@@ -1,20 +1,20 @@
 <template>
   <UApp :toaster="toaster">
-    <div class="fixed top-0 left-0 w-full py-[12px] px-4 shadow-sm bg-white flex items-center justify-between z-50">
+    <div class="pt-[env(safe-area-inset-top)] fixed top-0 left-0 w-full py-[12px] px-4 shadow-sm bg-white flex items-center justify-between z-50">
       <div class="flex items-center">
         <UDrawer direction="left" v-model:open=open>
          <UButton icon="i-lucide-menu" size="xl" variant="ghost" color="neutral" />
           <template #content>
-            <div class="min-w-60 px-4 py-6">
+            <div class="min-w-60 px-4 py-6 pt-[env(safe-area-inset-top)]">
               <div class="flex gap-x-4">
                 <UAvatar :alt="userStore.user.fullname" size="xl"/>
                 <p class="text-gray-800 font-bold">{{ userStore.user.firstname }} {{ userStore.user.middlename }} {{ userStore.user.lastname }} <span class="block text-xs text-gray-400">{{ userStore.user.user_type }}</span></p>
               </div>
               <div class="border border-gray-100 mt-4"></div>
               <div class="text-gray-800 mt-8 flex flex-col gap-2">
-                <UButton icon="i-lucide-layout-dashboard" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('dashboard')">Dashboard</UButton>
-                <UButton icon="i-lucide-box" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('available-items')">Available Items</UButton>
-                <UButton icon="i-lucide-list-restart" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('request-monitoring')">Request Monitoring</UButton>
+                <UButton icon="i-lucide-layout-dashboard" size="lg" color="neutral" :variant="activePath === '/user/dashboard' ? 'solid' : 'ghost'" class="w-full" @click="toLink('dashboard')">Dashboard</UButton>
+                <UButton icon="i-lucide-box" size="lg" color="neutral" :variant="activePath === '/user/available-items' ? 'solid' : 'ghost'" class="w-full" @click="toLink('available-items')">Available Items</UButton>
+                <UButton icon="i-lucide-list-restart" size="lg" color="neutral" :variant="activePath === '/user/request-monitoring' ? 'solid' : 'ghost'" class="w-full" @click="toLink('request-monitoring')">Request Monitoring</UButton>
                 <!--<UButton icon="i-lucide-bell" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('notifications')">Notifications</UButton>-->
               </div>
             </div>
@@ -67,6 +67,8 @@ import { onMounted } from 'vue';
   const isLogoutOpen = ref(false)
   const route = useRoute()
   const isExitApp = ref(false)
+  const activePath = useState('activePath', () => route.path)
+
 
   const exitApp = () => App.exitApp()
   

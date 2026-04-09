@@ -22,7 +22,12 @@ export default defineNuxtConfig({
   ui: {
     colorMode: false,
     global: true,
-    primary: 'secondary'
+    primary: 'secondary',
+    toaster: {
+      slots: {
+        viewport: 'p-4 flex flex-col gap-4 bg-transparent pt-[env(safe-area-inset-top)]'
+      }
+    },
   },
   ionic: {
     config: {

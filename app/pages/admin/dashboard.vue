@@ -2,7 +2,7 @@
   <IonPage>
     <IonContent>
         <div class="min-h-full bg-gray-100 pt-24 px-6">
-          <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-4 mt-6">
             <UCard variant="outline" class="shadow px-2 py-2">
               <div class="flex justify-between">
                 <p class="text-sm font-medium">Total Borrowed Itemss</p>

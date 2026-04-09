@@ -2,5 +2,10 @@
   "appId": "com.technical.app2",
   "appName": "TechnicalApp",
   "webDir": "dist",
-  "bundledWebRuntime": false
+  "bundledWebRuntime": false,
+  "Plugins": {
+    "StatusBar": {
+      "overlaysWebView": false
+    }
+  }
 }
