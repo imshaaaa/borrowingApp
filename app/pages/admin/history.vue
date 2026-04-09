@@ -4,8 +4,22 @@
         <div class="min-h-full bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingHistoryData" />
           <div v-if="!isGettingHistoryData" class="mt-6">
-            <UInput v-model="globalFilter" class="mb-2" placeholder="Global Filter Search..." color="secondary" />
-            <UTable ref="table" :data="historyData" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
+            <div class="flex justify-between mb-2">
+              <UInput v-model="globalFilter" placeholder="Search" color="secondary">
+                <template v-if="globalFilter.length" #trailing>
+                  <UButton
+                    color="neutral"
+                    variant="link"
+                    size="sm"
+                    icon="i-lucide-circle-x"
+                    aria-label="Clear input"
+                    @click="globalFilter = ''"
+                  />
+                </template>
+              </UInput>
+              <USelect v-model="statusFilter" class="w-auto" color="secondary" variant="outline" :items="statusFilterItems"/>
+            </div>
+            <UTable ref="table" :data="filterData" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
             </UTable>
             <div class="flex justify-center border-t border-default pt-4 px-4">
             <UPagination color="neutral" activeColor="neutral"
@@ -36,6 +50,8 @@
   const table = useTemplateRef('table')
   const UBadge = resolveComponent('UBadge')
   const toast = useToast()
+  const statusFilter = ref('Default')
+  const statusFilterItems = ref(['Default', 'Return', 'Request Denied'])
   const globalFilter = ref('')
   const stocksData = ref([
     { item_name: 'Hdmi Cable', borrower_name: 'Shallom Kyle Jacinto', user_id: '001-00101', room: '201', teacher:'Angel Mangubat', quantity: 10, borrow_date:'march 1', borrow_time: '10am', return_date: 'N/A', return_time:'N/A', status: 'overdue' },
@@ -71,6 +87,14 @@
       isGettingHistoryData.value = false
     }
   }
+
+  const filterData = computed(() => {
+    if(statusFilter.value == 'Default') {
+      return historyData.value
+    } else {
+      return historyData.value.filter(i => i.status == statusFilter.value)
+    }
+  })
   
   // for UTable
   const columns = [

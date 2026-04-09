@@ -4,11 +4,25 @@
         <div class="min-h-full bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingUsersData"/>
           <div class="mt-6" v-else>
-            <UInput v-model="globalFilter" class="mb-2" placeholder="Global Filter Search..." color="secondary" />
-            <UTable ref="table" :data="allUsersData" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
+            <div class="flex justify-between mb-2">
+              <UInput v-model="globalFilter" placeholder="Search" color="secondary">
+                <template v-if="globalFilter.length" #trailing>
+                  <UButton
+                    color="neutral"
+                    variant="link"
+                    size="sm"
+                    icon="i-lucide-circle-x"
+                    aria-label="Clear input"
+                    @click="globalFilter = ''"
+                  />
+                </template>
+              </UInput>
+              <USelect v-model="statusFilter" class="w-auto" color="secondary" variant="outline" :items="statusFilterItems"/>
+            </div>
+            <UTable ref="table" :data="filteredUsers" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
               <template #actions-cell="{ row }">
                 <div class="flex justify-center items-center gap-2">
-                  <UButton v-if="row.original.status  != 'Approved'" variant="soft" color="neutral" @click="openActionsModal(row.original)">
+                  <UButton v-if="row.original.status  != 'Approved' && row.original.status  != 'Disabled' " variant="soft" color="neutral" @click="openActionsModal(row.original)">
                     <UIcon name="i-lucide-user-pen"></UIcon>
                   </UButton>
                   <UButton v-else class="ml-2" variant="subtle" color="error" @click="openDeleteModal(row.original)">
@@ -111,6 +125,8 @@
   const isDelete = ref(false)
   const selectedUser = ref({})
   const statusItems = ref(['Pending','Approved'])
+  const statusFilterItems = ref(['Default', 'Pending', 'Approved', 'Disabled'])
+  const statusFilter = ref('Default')
   const globalFilter = ref('')
   const allUsersData = ref(null)
 
@@ -151,6 +167,14 @@
       return allUsersData.value = newUsersData
     }
   }
+
+  const filteredUsers = computed(() => {
+    if(statusFilter.value == 'Default') {
+      return allUsersData.value
+    } else {
+      return allUsersData.value.filter(u => u.status == statusFilter.value)
+    }
+  })
   
   const openActionsModal = (item) => {
     selectedUser.value = {...item}

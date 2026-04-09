@@ -8,7 +8,7 @@ export default defineNuxtRouteMiddleware(async(to) => {
 
   if(!userStore.user.id && !publicRoutes) {
     console.log('happened here?')
-    //supabase.auth.signOut()
+    //await supabase.auth.signOut()
     setPageLayout('default')
     return navigateTo('/login', { replace: true })
   }
@@ -40,6 +40,7 @@ export default defineNuxtRouteMiddleware(async(to) => {
       return navigateTo('/user/dashboard', { replace: true })
     }
   } else {
+    console.log(user.value)
     // await supabase.auth.signOut()
     // userStore.$reset()
     // setPageLayout('default')

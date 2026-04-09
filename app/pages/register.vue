@@ -13,19 +13,22 @@
           <UFormField label="Register as" name="registerAs">
             <USelect color="secondary" variant="subtle" v-model="state.registerAs" :items="regAsItems" size="xl" class="w-full"/>
           </UFormField>
-          <UFormField label="Frstname" name="firstname" class="mt-4">
+          <UFormField label="Student Role" name="specificRole" class="mt-4" v-if="state.registerAs == 'Student'">
+            <USelect color="secondary" variant="subtle" v-model="state.specificRole" :items="specificItems" size="xl" class="w-full" placeholder="Select role"/>
+          </UFormField>
+          <UFormField label="Frstname" name="firstname" class="mt-4" v-if="state.specificRole != 'Section'">
             <UInput v-model="state.firstname" color="secondary" variant="subtle" size="xl" class="w-full ring-blue-600" placeholder="John"/>
           </UFormField>
-          <UFormField label="Middlename" name="middlename" class="mt-4">
+          <UFormField label="Middlename" name="middlename" class="mt-4" v-if="state.specificRole != 'Section'">
             <UInput v-model="state.middlename" color="secondary" variant="subtle" size="xl" class="w-full ring-blue-600" placeholder=""/>
           </UFormField>
-          <UFormField label="Lastname" name="lastname" class="mt-4">
+          <UFormField label="Lastname" name="lastname" class="mt-4" v-if="state.specificRole != 'Section'">
             <UInput v-model="state.lastname" color="secondary" variant="subtle" size="xl" class="w-full ring-blue-600" placeholder="Doe"/>
           </UFormField>
           <UFormField label="Teacher/Staff ID" name="teacherStaffID" class="mt-4" v-if="state.registerAs == 'Teacher' || state.registerAs == 'Staff'">
             <UInput v-model="state.teacherStaffID" v-maska="teacherStaffIdMask" color="secondary" variant="subtle" size="xl" class="w-full ring-blue-600" placeholder="00-00001"/>
           </UFormField>
-          <UFormField label="Student ID" name="studentID" class="mt-4" v-if="state.registerAs == 'Student'">
+          <UFormField label="Student ID" name="studentID" class="mt-4" v-if="state.registerAs == 'Student' && state.specificRole != 'Section'">
             <UInput v-model="state.studentID" v-maska="studentIdMask" color="secondary" variant="subtle" size="xl" class="w-full ring-blue-600" placeholder="C01-0-0001-MAN123"/>
           </UFormField>
           <UFormField label="Course / Program" name="courses" class="mt-4" v-if="state.registerAs == 'Student'">
@@ -36,9 +39,6 @@
           </UFormField>
           <UFormField label="Section" name="section" class="mt-4" v-if="state.registerAs == 'Student'">
             <UInput color="secondary" variant="subtle" v-model="state.section" size="xl" class="w-full" placeholder="e.g BSIT22C"/>
-          </UFormField>
-          <UFormField label="Student Role" name="specificRole" class="mt-4" v-if="state.registerAs == 'Student'">
-            <USelect color="secondary" variant="subtle" v-model="state.specificRole" :items="specificItems" size="xl" class="w-full" placeholder="Select role"/>
           </UFormField>
           <UFormField label="Department" name="department" class="mt-4" v-if="state.registerAs == 'Teacher'">
             <USelect color="secondary" variant="subtle" v-model="state.department" :items="teachersDepartment" size="xl" class="w-full" placeholder="Select department"/>
@@ -142,7 +142,7 @@
   const department = ref(['Senior High School','Computer Studies','Hospitality','General Education','Business & Accountancy','Records Section /Registrar','Finance','Admission','Guidance','Human Resources','Library Service Scholarship'])
   const teachersDepartment = ref(['Senior High School','Computer Studies','Hospitality','General Education','Business & Accountancy'])
   const staffDepartment = ref(['Records Section /Registrar','Finance','Admission','Guidance','Human Resources','Library Service Scholarship'])
-  const specificItems = ref(['Mayor', 'Vice Mayor', 'Secretary'])
+  const specificItems = ref(['Mayor', 'Vice Mayor', 'Secretary', 'Section'])
   
   const studentIdMask = {
     mask: 'A##-##-####-AAA###',
@@ -160,17 +160,32 @@
   
   const schema = object({
     registerAs: string().trim().required('role is required'),
-    firstname: string().trim().min(3, 'must be atleast 3 characters').required('firstname is required'),
-    middlename: string().trim().min(3, 'must be atleast 3 characters').required('middlename is required'),
-    lastname: string().trim().min(3, 'must be atleast 3 characters').required('lastname is required'),
+    // firstname: string().trim().min(3, 'must be atleast 3 characters').required('firstname is required'),
+    // middlename: string().trim().min(3, 'must be atleast 3 characters').required('middlename is required'),
+    // lastname: string().trim().min(3, 'must be atleast 3 characters').required('lastname is required'),
+    firstname: string().when('specificRole', {
+      is: (val) => val != 'Section',
+      then: (schema) => schema.trim().min(3, 'must be atleast 3 characters').required('firstname is required'),
+      otherwise: (schema) => schema.strip()
+    }),
+    middlename: string().when('specificRole', {
+      is: (val) => val != 'Section',
+      then: (schema) => schema.trim().min(3, 'must be atleast 3 characters').required('middlename is required'),
+      otherwise: (schema) => schema.strip()
+    }),
+    lastname: string().when('specificRole', {
+      is: (val) => val != 'Section',
+      then: (schema) => schema.trim().min(3, 'must be atleast 3 characters').required('lastname is required'),
+      otherwise: (schema) => schema.strip()
+    }),
     teacherStaffID: string().when('registerAs', {
       is: (val) => val === 'Teacher' || val === 'Staff',
       then: (schema) => schema.trim().min(7, 'must be 7 characters').required('teacher/staff id is required'),
       otherwise: (schema) => schema.strip()
     }),
-    studentID: string().when('registerAs', {
-      is: 'Student',
-      then: (schema) => schema.trim().min(15, 'must be 15 characters').required("studend id is required"),
+    studentID: string().when(['registerAs', 'specificRole'], {
+      is: (registerAs, specificRole) => registerAs === 'Student' && specificRole !== 'Section',
+      then: (schema) => schema.trim().min(15, 'must be 15 characters').required("student id is required"),
       otherwise: (schema) => schema.strip()
     }),
     courses: string().when('registerAs', {
@@ -303,6 +318,8 @@
     state.lastname = ""
     state.studentID = ""
     state.teacherStaffID = ""
+    state.section = ""
+    state.specificRole = ""
     state.courses = ""
     state.yearLevel = ""
     state.department = ""
@@ -313,8 +330,9 @@
     state.confirmPass = ""
   }
   
-  const toLogin = () => {
+  const toLogin = async () => {
     resetForm()
+    await supabase.auth.signOut()
     state.registerAs = "Student"
     ionRouter.navigate('/login', 'forward', 'push')
   }

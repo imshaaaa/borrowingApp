@@ -4,8 +4,22 @@
         <div class="min-h-screen bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingBorrowedItems" />
           <div v-else class="mt-6">
-            <UInput v-model="globalFilter" class="mb-2" placeholder="Search for an item..." color="secondary" />
-            <UTable ref="table" :data="borrowedItems" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
+            <div class="flex justify-between mb-2">
+              <UInput v-model="globalFilter" placeholder="Search" color="secondary">
+                <template v-if="globalFilter.length" #trailing>
+                  <UButton
+                    color="neutral"
+                    variant="link"
+                    size="sm"
+                    icon="i-lucide-circle-x"
+                    aria-label="Clear input"
+                    @click="globalFilter = ''"
+                  />
+                </template>
+              </UInput>
+              <USelect v-model="statusFilter" class="w-auto" color="secondary" variant="outline" :items="statusFilterItems"/>
+            </div>
+            <UTable ref="table" :data="filteredBorrowedItems" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
               <template #actions-cell="{ row }">
                 <UButton color="secondary" @click="viewDetails(row.original)">View Details</UButton>
               </template>
@@ -90,6 +104,8 @@
   const selectedItem = ref({})
   const statusItems = ref(['Available','Not-Available'])
   const globalFilter = ref('')
+  const statusFilterItems = ref(['Default', 'Pending', 'On Going', 'Overdue', 'Returned', 'Request Denied', 'Request Expired'])
+  const statusFilter = ref('Default')
   const currentDate = ref(today(getLocalTimeZone()))
   const borrowTime = ref('07:00')
   const returnDate = ref(today(getLocalTimeZone()))
@@ -126,6 +142,14 @@
       console.log(err)
     }
   }
+
+  const filteredBorrowedItems = computed(() => {
+    if(statusFilter.value == 'Default') {
+      return borrowedItems.value
+    } else {
+      return borrowedItems.value.filter(i => i.status == statusFilter.value)
+    }
+  })
   
   const viewDetails = (item) => {
     selectedItem.value = {...item}

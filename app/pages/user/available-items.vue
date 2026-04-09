@@ -4,8 +4,22 @@
         <div class="min-h-full bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingAvailableData"/>
           <div v-if='!isGettingAvailableData' class="mt-6">
-            <UInput v-model="globalFilter" class="mb-2" placeholder="Search for an item..." color="secondary" />
-            <UTable ref="table" :data="availableItemsData" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
+            <div class="flex justify-between mb-2">
+              <UInput v-model="globalFilter" placeholder="Search" color="secondary">
+                <template v-if="globalFilter.length" #trailing>
+                  <UButton
+                    color="neutral"
+                    variant="link"
+                    size="sm"
+                    icon="i-lucide-circle-x"
+                    aria-label="Clear input"
+                    @click="globalFilter = ''"
+                  />
+                </template>
+              </UInput>
+              <USelect v-model="categoryFilter" class="w-auto" color="secondary" variant="outline" :items="categoryFilterItems"/>
+            </div>
+            <UTable ref="table" :data="filteredItems" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
               <template #actions-cell="{ row }">
                 <UButton color="secondary" variant="subtle" class="mr-2" @click="openBorrowModal(row.original,'reserve')">Reserve</UButton>
                 <UButton color="secondary" @click="openBorrowModal(row.original,'borrow')" :disabled="isTimePassed">
@@ -115,7 +129,7 @@
 
   
   import { object, string, number,date } from 'yup'
-  import { h, resolveComponent } from 'vue'
+  import { h, resolveComponent, watch } from 'vue'
   import { getPaginationRowModel } from '@tanstack/vue-table'
   import { today, getLocalTimeZone, Time } from '@internationalized/date'
   import { onIonViewWillEnter, onIonViewWillLeave } from '#imports'
@@ -134,7 +148,9 @@
   const isBorrowModalOpen = ref(false)
   const statusItems = ref(['Available','Not-Available'])
   const globalFilter = ref('')
-  const isReserve = ref(undefined)
+  const categoryFilterItems = ['Default','Computer Hardware','Network and Cabling','Repair and Maintenance Tools','Power Equipment','Audio-Visual Devices','Remote Controls']
+  const categoryFilter = ref('Default')
+  const isReserve = ref(false)
   const isGettingAvailableData = ref(false)
   const availableItemsData = ref([])
   const addMoreModalOpen = ref(false)
@@ -196,6 +212,14 @@
       isGettingAvailableData.value = false
     }
   }
+
+  const filteredItems = computed(() => {
+    if(categoryFilter.value == 'Default') {
+      return availableItemsData.value
+    } else {
+      return availableItemsData.value.filter(i => i.category == categoryFilter.value)
+    }
+  })  
   
   const isTimePassed = computed(() => {
     return new Date().getTime() > recommendedTime
@@ -437,13 +461,9 @@
     state.returnTime = returnTimeObj.format('HH:mm')
   })
 
-  watch(() => state.borrowDate, (newDate) => {
-    if(!newDate) return
-
-    //if(newDate)
-  })
-
   watch(() => selectedItemName.value.length, (newValue) => {
     state.quantity = newValue
-  }, { immidiate: true })
+  }, { immediate: true })
+
+
 </script>

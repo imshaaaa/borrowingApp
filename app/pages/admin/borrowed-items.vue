@@ -4,8 +4,22 @@
         <div class="min-h-full bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingBorrowedData" />
           <div v-if="!isGettingBorrowedData" class="mt-6">
-            <UInput v-model="globalFilter" class="mb-2" placeholder="Global Filter Search..." color="secondary" />
-            <UTable :data="borrowedItemsData" ref="table" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }" v-model:grouping="grouping" v-model:expanded="expanded" :grouping-options="groupingOptions">
+            <div class="flex justify-between mb-2">
+              <UInput v-model="globalFilter" placeholder="Search" color="secondary">
+                <template v-if="globalFilter.length" #trailing>
+                  <UButton
+                    color="neutral"
+                    variant="link"
+                    size="sm"
+                    icon="i-lucide-circle-x"
+                    aria-label="Clear input"
+                    @click="globalFilter = ''"
+                  />
+                </template>
+              </UInput>
+              <USelect v-model="statusFilter" class="w-auto" color="secondary" variant="outline" :items="statusFilterItems"/>
+            </div>
+            <UTable :data="filterData" ref="table" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }" v-model:grouping="grouping" v-model:expanded="expanded" :grouping-options="groupingOptions">
               <template #borrow_id-cell="{ row }">
                 <div class="flex gap-2">
                   <template v-if="row.getIsGrouped() && row.subRows.length > 1" >
@@ -160,7 +174,9 @@
   const isDeleteModalOpen = ref(false)
   const selectedItem = ref({})
   const statusItems = ref(['Pending','Request Denied','On Going'])
+  const statusFilterItems = ref(['Default', 'Pending', 'On Going', 'Overdue'])
   const globalFilter = ref('')
+  const statusFilter = ref('Default')
   const borrowedItemsData = ref([])
   const isGettingBorrowedData = ref(false)
   const isApproving = ref(false)
@@ -249,6 +265,14 @@
     }
     
   }
+
+  const filterData = computed(() => {
+    if(statusFilter.value == 'Default') {
+      return borrowedItemsData.value
+    } else {
+      return borrowedItemsData.value.filter(i => i.status == statusFilter.value)
+    }
+  })
 
   const approveRequestItem = async() => {
     isApproving.value = true

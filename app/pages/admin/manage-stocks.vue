@@ -7,8 +7,23 @@
             <UButton color="secondary" class="mr-2" @click="isQrOpen = true">Scan QR</UButton>
           </div>
           <div v-if="!isGettingStocksData" class="mt-6">
-            <UInput v-model="globalFilter" class="mb-2" placeholder="Global Filter Search..." color="secondary" />
-            <UTable ref="table" :data="allStocks" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
+            <div class="flex justify-between mb-2 gap-2 flex-wrap">
+              <UInput v-model="globalFilter" placeholder="Search" color="secondary">
+                <template v-if="globalFilter.length" #trailing>
+                  <UButton
+                    color="neutral"
+                    variant="link"
+                    size="sm"
+                    icon="i-lucide-circle-x"
+                    aria-label="Clear input"
+                    @click="globalFilter = ''"
+                  />
+                </template>
+              </UInput>
+              <USelect v-model="Filter" class="w-auto" color="secondary" variant="outline" :items="FilterItems"/>
+              <USelect v-model="statusFilter" class="w-auto" color="secondary" variant="outline" :items="statusFilterItems"/>
+            </div>
+            <UTable ref="table" :data="filteredStocksByStatus" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
               <template #actions-cell="{ row }">
                 <UButton variant="soft" color="neutral" @click="openActionsModal(row.original)">
                   <UIcon name="i-lucide-pen"></UIcon>
@@ -102,7 +117,11 @@
   const selectedItem = ref({})
   const isGettingStocksData = ref(false)
   const statusItems = ref(['Available','Not Available'])
+  const FilterItems = ['Default','Computer Hardware','Network and Cabling','Repair and Maintenance Tools','Power Equipment','Audio-Visual Devices','Remote Controls']
+  const statusFilterItems = ref(['Default', 'Available', 'Not Available'])
   const globalFilter = ref('')
+  const Filter = ref('Default')
+  const statusFilter = ref('Default')
   const allStocks = ref()
   const isMode = ref()
   const isUpdatingEquipment = ref(false)
@@ -174,6 +193,22 @@
       isGettingStocksData.value = false
     }
   }
+
+  const filteredStocks = computed(() => {
+    if(Filter.value == 'Default') {
+      return allStocks.value
+    } else {
+      return allStocks.value.filter(i => i.category == Filter.value)
+    }
+  })
+
+  const filteredStocksByStatus = computed(() => {
+    if(statusFilter.value == 'Default') {
+      return filteredStocks.value
+    } else {
+      return filteredStocks.value.filter(i => i.status == statusFilter.value)
+    }
+  })
   
   const openActionsModal = (item) => {
     state.selectedItemName = item.item_name
