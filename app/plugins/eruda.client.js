@@ -13,5 +13,5 @@ export default defineNuxtPlugin(() => {
       console.log('Eruda initialized successfully')
     }
     script.onerror = () => console.error('Eruda failed to load from CDN')
-    document.body.appendChild(script)
+    //document.body.appendChild(script)
 })

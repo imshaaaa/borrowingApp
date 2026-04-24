@@ -1,71 +1,114 @@
 <template>
-  <IonPage>
-    <IonContent>
-        <div class="min-h-full bg-gray-100 pt-24 px-6">
-          <div class="flex flex-col gap-4 mt-6">
-            <UCard variant="outline" class="shadow px-2 py-2">
-              <div class="flex justify-between">
-                <p class="text-sm font-medium">Total Borrowed Itemss</p>
-                <UIcon name="i-lucide-box" class="text-blue-500" />
+  <ion-page>
+    <ion-content>
+        <div class="min-h-full bg-gray-100 pt-28 px-6 pb-6">
+          <div class="flex flex-wrap gap-4 justify-between">
+            <div class="flex-1 min-w-[calc(50%-0.5rem)] flex flex-col bg-white py-2 px-4 rounded-lg shadow">
+              <p class="text-gray-500 text-sm">
+                <UIcon name="i-lucide-box" class="text-blue-600 mr-2" />
+                Total Equipments
+              </p>
+              <UButton v-if="isGettingData" class="mt-auto pt-2" variant="soft" color="neutral" loading></UButton>
+              <p v-else class="text-xl font-bold mt-auto pt-2">{{ allEquipments }}</p>
+            </div>
+            <div class="flex-1 min-w-[calc(50%-0.5rem)] flex flex-col bg-white py-2 px-4 rounded-lg shadow">
+              <p class="text-gray-500 text-sm">
+                <UIcon name="i-lucide-users" class="text-blue-600 mr-2" />
+                Total Users
+              </p>
+              <div v-if="userStore.user.user_type == 'Admin'" class="mt-auto pt-2">
+                <UButton v-if="isGettingData" class="mt-auto pt-2" variant="soft" color="neutral" loading></UButton>
+                <p v-else class="text-xl font-bold mt-auto pt-2">{{ allStaffLength }}</p>
               </div>
-              <UButton v-if="isGettingData" class="mt-4" variant="soft" color="neutral" loading></UButton>
-              <p v-else class="text-2xl font-bold mt-4 text-gray-800">{{ statsStore.stats.total }}</p>
-            </UCard>
-            <UCard variant="outline" class="shadow px-2 py-2">
-              <div class="flex justify-between">
-                <p class="text-sm font-medium">Pending Requests</p>
-                <UIcon name="i-lucide-workflow" class="text-blue-500" />
+              <div v-else class="mt-auto pt-2">
+                <UButton v-if="isGettingData" class="mt-auto pt-2" variant="soft" color="neutral" loading></UButton>
+                <p v-else class="text-xl font-bold mt-auto pt-2">{{ allUsersLength }}</p>
               </div>
-              <UButton v-if="isGettingData" class="mt-4" variant="soft" color="neutral" loading></UButton>
-              <p v-else class="text-2xl font-bold mt-4 text-gray-800">{{ statsStore.stats.pending }}</p>
-            </UCard>
-            <UCard variant="outline" class="shadow px-2 py-2">
-              <div class="flex justify-between">
-                <p class="text-sm font-medium">Overdue Items</p>
-                <UIcon name="i-lucide-clock" class="text-blue-500" />
-              </div>
-              <UButton v-if="isGettingData" class="mt-4" variant="soft" color="neutral" loading></UButton>
-              <p v-else class="text-2xl font-bold mt-4 text-gray-800">{{ statsStore.stats.overdue }}</p>
-            </UCard>
-            <UCard variant="outline" class="shadow px-2 py-2">
-              <div class="flex justify-between">
-                <p class="text-sm font-medium">Returned Items</p>
-                <UIcon name="i-lucide-archive" class="text-blue-500" />
-              </div>
-              <UButton v-if="isGettingData" class="mt-4" variant="soft" color="neutral" loading></UButton>
-              <p v-else class="text-2xl font-bold mt-4 text-gray-800">{{ statsStore.stats.returned }}</p>
-            </UCard>
+            </div>
+            <div class="flex-1 min-w-[calc(50%-0.5rem)] flex flex-col bg-white py-2 px-4 rounded-lg shadow">
+              <p class="text-gray-500 text-sm">
+                <UIcon name="i-lucide-circle-alert" class="text-red-600 mr-2" />
+                Unreturned
+              </p>
+              <UButton v-if="isGettingData" class="mt-auto pt-2" variant="soft" color="neutral" loading></UButton>
+              <p v-else class="text-xl font-bold mt-auto pt-2">{{ allBorrowedData.filter(i => i.status == "Unreturned").length }}</p>
+            </div>
+            <div class="flex-1 min-w-[calc(50%-0.5rem)] flex flex-col bg-white py-2 px-4 rounded-lg shadow">
+              <p class="text-gray-500 text-sm">
+                <UIcon name="i-lucide-hourglass" class="text-orange-600 mr-2" />
+                Pending Request
+              </p>
+             <UButton v-if="isGettingData" class="mt-auto pt-2" variant="soft" color="neutral" loading></UButton>
+              <p v-else class="text-xl font-bold mt-auto pt-2">{{ allBorrowedData.filter(i => i.status == "Pending").length }}</p>
+            </div>
+            <div class="flex-1 min-w-[calc(50%-0.5rem)] flex flex-col bg-white py-2 px-4 rounded-lg shadow">
+              <p class="text-gray-500 text-sm">
+                <UIcon name="i-lucide-refresh-ccw" class="text-blue-600 mr-2" />
+                Borrowed
+              </p>
+              <UButton v-if="isGettingData" class="mt-auto pt-2" variant="soft" color="neutral" loading></UButton>
+              <p v-else class="text-xl font-bold mt-auto pt-2">{{ allBorrowedData.filter(i => i.status == "On Going").length + allBorrowedData.filter(i => i.status == "Unreturned").length }}</p>
+            </div>
+            <div class="flex-1 min-w-[calc(50%-0.5rem)] flex flex-col bg-white py-2 px-4 rounded-lg shadow">
+              <p class="text-gray-500 text-sm">
+                <UIcon name="i-lucide-undo-2" class="text-green-600 mr-2" />
+                Returned
+              </p>
+              <UButton v-if="isGettingData" class="mt-auto pt-2" variant="soft" color="neutral" loading></UButton>
+              <p v-else class="text-xl font-bold mt-auto pt-2">{{ allBorrowedData.filter(i => i.status == "Return").length }}</p>
+            </div>
           </div>
-        
+
+          <DashboardChart v-if="!isGettingData" :data="allBorrowedData" />
         </div>
-    </IonContent>
-  </IonPage>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script setup>
-import { onMounted } from "vue"
-
+  import { onMounted } from "vue"
 
   const supabase = useSupabaseClient()
   const userStore = useUserStore()
-  const statsStore  = useStatisticsStore()
   const toast = useToast()
   const isGettingData = ref(true)
+  const allBorrowedData = ref()
+  const allUsersLength = ref()
+  const allEquipments = ref()
+  const allStaffLength = ref()
 
   const getStatsData = async () => {
     isGettingData.value = true
     try {
+      let { count: items, error: itemsErr } = await supabase
+      .from('tbl_item')
+      .select('*', { count: 'exact', head: true })
+
+      if(itemsErr) throw itemsErr
+
       let { data, error } = await supabase
       .from('tbl_borrowed_item')
       .select('*')
-      .in('status', ['Pending', 'On Going', 'Overdue', 'Return'])
+      .in('status', ['On Going', 'Unreturned', 'Returned'])
 
       if (error) throw error
 
-      if(data) {
-        statsStore.setStats(data)
-        isGettingData.value = false
-      }
+      let { count, error: countErr } = await supabase
+      .from("tbl_users")
+      .select('*', { count: 'exact', head: true })
+
+      if(countErr) throw countErr
+
+      let { count: techStaffData, error: techStaffDataErr } = await supabase
+      .from("tbl_users")
+      .select('*', { count: 'exact', head: true })
+      .in('user_type', ['Technical Staff', 'OJT Trainee'])
+
+      allBorrowedData.value = data
+      allUsersLength.value = count
+      allEquipments.value = items
+      allStaffLength.value = techStaffData
+      isGettingData.value = false
     } catch (error) {
       toast.add({
         title: 'Server error',
@@ -83,7 +126,8 @@ import { onMounted } from "vue"
 
 
   definePageMeta({
-    layout: 'admin'
+    layout: 'admin',
+    middleware: 'auth'
   })
 
   onMounted(() => {

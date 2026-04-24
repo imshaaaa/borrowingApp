@@ -1,6 +1,6 @@
 <template>
-  <IonPage>
-    <IonContent>
+  <ion-page>
+    <ion-content>
         <div class="min-h-full bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingBorrowedData" />
           <div v-if="!isGettingBorrowedData" class="mt-6">
@@ -36,7 +36,7 @@
               <template #item_name-cell= "{ row }">
                 <span v-if="row.subRows.length > 1">
                  <!--{{ row.subRows.map(d => d.original.item).join(', ') }}-->
-                  {{ row.subRows.filter(i => i.original.status == 'Pending' || i.original.status == 'On Going' || i.original.status == 'Overdue').map(d => d.original.item).join(',') }}
+                  {{ row.subRows.filter(i => i.original.status == 'Pending' || i.original.status == 'On Going' || i.original.status == 'Overdue' || i.original.status == "Unreturned").map(d => d.original.item).join(',') }}
                 </span>
                 <span v-else>
                   {{ row.original.item }}
@@ -78,7 +78,10 @@
                   <UBadge v-else-if="row.subRows.every(d => d.original.status == 'Overdue')" variant="subtle" color="error">
                     OVERDUE
                   </UBadge>
-                  <UBadge v-else-if="row.subRows.some(d => d.original.status == 'Pending' || d.original.status == 'On Going' || d.original.status == 'Overdue' )" variant="subtle" color="neutral">
+                  <UBadge v-else-if="row.subRows.every(d => d.original.status == 'Unreturned')" variant="subtle" color="error">
+                    UNRETURNED
+                  </UBadge>
+                  <UBadge v-else-if="row.subRows.some(d => d.original.status == 'Pending' || d.original.status == 'On Going' || d.original.status == 'Overdue' || d.original.status == 'Unreturned')" variant="subtle" color="neutral">
                     MIXED STATUS
                   </UBadge>
                 </div>
@@ -92,19 +95,29 @@
                   <UBadge v-else-if="row.original.status === 'Overdue'" variant="subtle" color="error">
                     OVERDUE
                   </UBadge>
+                  <UBadge v-else-if="row.original.status === 'Unreturned'" variant="subtle" color="error">
+                    UNRETURNED
+                  </UBadge>
                 </div>
               </template>
-              <template #actions-cell="{ row }">
-                <UButton v-if="row.original.status == 'Pending'" variant="soft" color="neutral" @click="openActionsModal(row.original, row)">
-                  <UIcon name="i-lucide-pen"></UIcon>
-                </UButton>
-                <UButton v-if="row.original.status == 'On Going' && row.subRows.length == 1 || row.subRows.length == 0" variant="soft" color="neutral" @click="openMarkAsModal(row)">
-                  <UIcon name="i-lucide-pen"></UIcon>
-                </UButton>
-                <UButton v-if="row.original.status == 'Overdue' && row.subRows.length == 1" variant="soft" color="neutral" @click="openMarkAsModal(row)">
-                  <UIcon name="i-lucide-pen"></UIcon>
-                </UButton>
-                
+              <template v-if="userStore.user.user_type !== 'Admin'" #actions-cell="{ row }">
+                <div>
+                  <UButton v-if="row.original.status == 'Pending' " variant="soft" color="neutral" @click="openActionsModal(row.original, row)">
+                    <UIcon name="i-lucide-pen"></UIcon>
+                  </UButton>
+                  <span v-else>
+                    <UButton v-if="row.original.status == 'On Going' && row.subRows.length == 1 || row.subRows.length == 0" variant="soft" color="neutral" @click="openMarkAsModal(row)">
+                      <UIcon name="i-lucide-pen"></UIcon>
+                    </UButton>
+                    <UButton v-if="row.original.status == 'Overdue'  && row.subRows.length == 1" variant="soft" color="neutral" @click="openMarkAsModal(row)">
+                      <UIcon name="i-lucide-pen"></UIcon>
+                    </UButton>
+                    <UButton v-if="row.original.status == 'Unreturned'  && row.subRows.length == 1" variant="soft" color="neutral" @click="openMarkAsModal(row)">
+                      <UIcon name="i-lucide-pen"></UIcon>
+                    </UButton>
+                  </span>
+                  
+                </div>
               </template>
             </UTable>
             <div class="flex justify-center border-t border-default pt-4 px-4">
@@ -144,8 +157,8 @@
             </UModal>
           </div>
         </div>
-    </IonContent>
-  </IonPage>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script setup>
@@ -162,10 +175,12 @@
   import { getGroupedRowModel, getCoreRowModel, getExpandedRowModel } from '@tanstack/vue-table'
 
   definePageMeta({
-    layout: 'admin'
+    layout: 'admin',
+    middleware: 'auth'
   })
 
   const supabase = useSupabaseClient()
+  const userStore = useUserStore()
   const table = useTemplateRef('table')
   const UBadge = resolveComponent('UBadge')
   const toast = useToast()
@@ -174,9 +189,9 @@
   const isDeleteModalOpen = ref(false)
   const selectedItem = ref({})
   const statusItems = ref(['Pending','Request Denied','On Going'])
-  const statusFilterItems = ref(['Default', 'Pending', 'On Going', 'Overdue'])
+  const statusFilterItems = ref(['All Status', 'Pending', 'On Going', 'Unreturned'])
   const globalFilter = ref('')
-  const statusFilter = ref('Default')
+  const statusFilter = ref('All Status')
   const borrowedItemsData = ref([])
   const isGettingBorrowedData = ref(false)
   const isApproving = ref(false)
@@ -208,7 +223,7 @@
   const getBorrowedItems = async () => {
     try {
       let now = dayjs()
-      let { data, error } = await supabase.from('tbl_borrowed_item').select('*').in("status", ['Pending','On Going','Overdue']).order('form_id', { ascending: false })
+      let { data, error } = await supabase.from('tbl_borrowed_item').select('*').in("status", ['Pending','On Going','Overdue',"Unreturned"]).order('form_id', { ascending: false })
 
       if(error) throw error
       if(!data) return
@@ -226,7 +241,7 @@
       }).map(i => i.form_id)
 
       if(overdueIds.length > 0) {
-        let { error: updateErr } = await supabase.from('tbl_borrowed_item').update({ status: 'Overdue' }).in('form_id', overdueIds)
+        let { error: updateErr } = await supabase.from('tbl_borrowed_item').update({ status: 'Unreturned' }).in('form_id', overdueIds)
 
         console.log('update here?')
         
@@ -242,14 +257,14 @@
 
       let finalData = await data.filter(i => !expiredRequest.includes(i.form_id)).map(item => {
         if(overdueIds.includes(item.form_id)) {
-          return {...item, status: 'Overdue'}
+          return {...item, status: 'Unreturned'}
         }
       
         return item
       })
 
       console.log('overdue?', overdueIds)
-      console.log('data', finalData)
+      console.log('data final', finalData)
 
       borrowedItemsData.value = await finalData
       isGettingBorrowedData.value = false
@@ -267,7 +282,7 @@
   }
 
   const filterData = computed(() => {
-    if(statusFilter.value == 'Default') {
+    if(statusFilter.value == 'All Status') {
       return borrowedItemsData.value
     } else {
       return borrowedItemsData.value.filter(i => i.status == statusFilter.value)
@@ -281,7 +296,7 @@
 
     console.log('item',itemNames)
 
-    let { data: itemsData, error: isError } = await supabase.from('tbl_item').select('quantity,item_name').in('item_name', itemNames)
+    let { data: itemsData, error: isError } = await supabase.from('tbl_item_models').select('quantity,item_name').in('item_name', itemNames)
 
     if(isError) {
       toast.add({
@@ -310,6 +325,9 @@
             icon: 'i-lucide-circle-x',
             color: 'error'
           })
+          isConfirmModalOpen.value = false
+          isApproving.value = false
+          isActionsModalOpen.value = false
       }
 
        if(stockItem.quantity < item.quantity) {
@@ -492,7 +510,7 @@
     let targetIds = selectedRowData.value.form_ids
     let itemsToReturn = borrowedItemsData.value.filter(i => targetIds.includes(i.form_id)).map(i => ({ item_name: i.item, quantity: i.quantity }))
 
-    let { data: stocks, error: stockErr } = await supabase.from('tbl_item').select('quantity').eq('item_name', itemsToReturn[0].item_name)
+    let { data: stocks, error: stockErr } = await supabase.from('tbl_item_models').select('quantity').eq('item_name', itemsToReturn[0].item_name)
 
     if(stockErr) {
       toast.add({
@@ -515,7 +533,7 @@
     console.log('stock quantity', stockQuantity)
     console.log('new quantity', newQuantity)
 
-     let { error: setError } = await supabase.from('tbl_borrowed_item').update({ status: 'Return', return_time: currentReturnTime }).in('form_id', targetIds)
+     let { error: setError } = await supabase.from('tbl_borrowed_item').update({ status: 'Returned', return_time: currentReturnTime }).in('form_id', targetIds)
 
     if(setError) {
       toast.add({
@@ -527,22 +545,22 @@
     return
     }
 
-    let { error: setQuantityError } = await supabase.from('tbl_item').update({ quantity: newQuantity, status: 'Available' }).eq('item_name', itemsToReturn[0].item_name)
+    // let { error: setQuantityError } = await supabase.from('tbl_item').update({ quantity: newQuantity, status: 'Available' }).eq('item_name', itemsToReturn[0].item_name)
 
-    if(setQuantityError) {
-      toast.add({
-        title: 'Server error',
-        description: 'An error occured while updating data',
-        icon: 'i-lucide-circle-x',
-        color: 'error'
-      })
-      console.log(setQuantityError)
-      isConfirmModalOpen.value = false
-      isMarkAsReturning.value = false
-      return
-    }
+    // if(setQuantityError) {
+    //   toast.add({
+    //     title: 'Server error',
+    //     description: 'An error occured while updating data',
+    //     icon: 'i-lucide-circle-x',
+    //     color: 'error'
+    //   })
+    //   console.log(setQuantityError)
+    //   isConfirmModalOpen.value = false
+    //   isMarkAsReturning.value = false
+    //   return
+    // }
 
-    borrowedItemsData.value = borrowedItemsData.value.filter(d => !targetIds.includes(d.form_id))
+    // borrowedItemsData.value = borrowedItemsData.value.filter(d => !targetIds.includes(d.form_id))
     
 
     toast.add({
@@ -638,7 +656,8 @@
         const color = {
           Pending: 'warning',
           'On Going': 'secondary',
-          Overdue: 'error'
+          Overdue: 'error',
+          Unreturned: 'error'
         }[row.getValue('status')]
         
         return h(UBadge, { class: 'capitalize uppercase', variant: 'subtle', color }, () => 

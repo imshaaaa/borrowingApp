@@ -1,15 +1,32 @@
 <template>
-  <IonApp >
+  <ion-app>
     <NuxtLayout>
-      <IonRouterOutlet />
+      <ion-router-outlet />
     </NuxtLayout>
-  </IonApp>
+  </ion-app>
 </template>
 
 <script setup>
   import { StatusBar, Style } from '@capacitor/status-bar';
+  import { App } from '@capacitor/app';
+
+  let route = useRoute()
 
   onMounted(async() => {
-    await StatusBar.setStyle({ style: Style.Light });
-  })  
+    try {
+      await StatusBar.setStyle({ style: Style.Light });      
+    } catch (error) {
+      console.log('status bar not available for web')
+    }
+  })
+  
+  App.addListener('backButton', () => {
+    let path = route.path
+    let path2 = window.location.pathname
+
+    //let rootPages = ['/login','/admin/']
+
+    console.log('index path',path)
+    console.log('index2 path', path2)
+  })
 </script>

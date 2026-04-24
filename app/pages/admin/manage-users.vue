@@ -1,6 +1,6 @@
 <template>
-  <IonPage>
-    <IonContent>
+  <ion-page>
+    <ion-content>
         <div class="min-h-full bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingUsersData"/>
           <div class="mt-6" v-else>
@@ -20,16 +20,17 @@
               <USelect v-model="statusFilter" class="w-auto" color="secondary" variant="outline" :items="statusFilterItems"/>
             </div>
             <UTable ref="table" :data="filteredUsers" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
-              <template #actions-cell="{ row }">
-                <div class="flex justify-center items-center gap-2">
-                  <UButton v-if="row.original.status  != 'Approved' && row.original.status  != 'Disabled' " variant="soft" color="neutral" @click="openActionsModal(row.original)">
+              <!-- <template #actions-cell="{ row }">
+                <div v-if="userStore.user.user_type !== 'Admin'" class="flex justify-center items-center gap-2">
+                  <UButton v-if="row.original.status  != 'Approved' && row.original.status  != 'Disabled' && row.original.status  != 'Rejected'" variant="soft" color="neutral" @click="openActionsModal(row.original)">
                     <UIcon name="i-lucide-user-pen"></UIcon>
                   </UButton>
+                  
                   <UButton v-else class="ml-2" variant="subtle" color="error" @click="openDeleteModal(row.original)">
                     <UIcon name="i-lucide-trash"></UIcon>
                   </UButton>
                 </div>
-              </template>
+              </template> -->
             </UTable>
             <div class="flex justify-center border-t border-default pt-4 px-4">
             <UPagination color="neutral" activeColor="neutral"
@@ -46,7 +47,7 @@
                 </div>
               </template>
               <template #footer>
-                <UButton color="error" variant="subtle" @click="isDeleteModalOpen = true">Decline</UButton>
+                <UButton color="error" variant="subtle" @click="isRejectModalOpen = true">Reject</UButton>
                   <UButton type="submit"  color="secondary" @click="approveUser">Approve</UButton>
               </template>
             </UModal>
@@ -60,6 +61,18 @@
                 <UButton color="error" variant="outline" @click="close" :disabled="isDelete">Cancel</UButton>
                 <UButton color="error" @click="deleteUser" v-if=!isDelete>Delete</UButton>
                 <UButton color="error" @click="" loading v-if="isDelete">Deleting account ...</UButton>
+              </template>
+            </UModal>
+            <UModal title="Reject User Request" v-model:open="isRejectModalOpen" :ui="{ footer: 'justify-end'}" :dismissible="false" :close="!isReject">
+              <template #body>
+                <div class="w-full text-gray-800 text-center">
+                  <p>Are you sure you want to reject this user request ?</p>
+                </div>
+              </template>
+              <template #footer="{ close }">
+                <UButton color="error" variant="outline" @click="close" :disabled="isReject">Cancel</UButton>
+                <UButton color="error" @click="rejectUser" v-if=!isReject>Reject</UButton>
+                <UButton color="error" @click="" loading v-if="isReject">Rejecting account ...</UButton>
               </template>
             </UModal>
             <UModal v-model:open='isNotifModal' :dismissible='false' :close="false">
@@ -83,13 +96,14 @@
             </UModal>
           </div>
         </div>
-    </IonContent>
-  </IonPage>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script setup>
   definePageMeta({
-    layout: 'admin'
+    layout: 'admin',
+    middleware: 'auth'
   })
 
   onIonViewWillEnter(() => {
@@ -101,12 +115,13 @@
     console.log('unmount')
   })
   
-  import { object, string } from 'yup'
   import { h, resolveComponent } from 'vue'
   import { getPaginationRowModel } from '@tanstack/vue-table'
   import { onIonViewWillEnter, onIonViewWillLeave } from '#imports'
+import { user } from '#build/ui'
 
   const supabase = useSupabaseClient()
+  const userStore = useUserStore()
   const table = useTemplateRef('table')
   const UBadge = resolveComponent('UBadge')
   const toast = useToast()
@@ -121,12 +136,14 @@
   const isReconfirmModalMsg = ref('')
   const isReconfirmModalTitle = ref('')
   const isDeleteModalOpen = ref(false)
+  const isRejectModalOpen = ref(false)
   const isApprove = ref(false)
+  const isReject = ref(false)
   const isDelete = ref(false)
   const selectedUser = ref({})
   const statusItems = ref(['Pending','Approved'])
-  const statusFilterItems = ref(['Default', 'Pending', 'Approved', 'Disabled'])
-  const statusFilter = ref('Default')
+  const statusFilterItems = ref(['All Status', 'Pending', 'Approved', 'Disabled', 'Rejected'])
+  const statusFilter = ref('All Status')
   const globalFilter = ref('')
   const allUsersData = ref(null)
 
@@ -135,7 +152,16 @@
   })
 
   const getUsers = async () => {
-    let { data: usersData, error: isError } = await supabase.from('tbl_users').select('*').in('user_type', ['Student','Staff','Teacher', 'Technical Staff', 'OJT Trainee']).order('user_id', { ascending: false })
+
+    let userTypes = []
+
+    if(userStore.user.user_type === 'Admin') {
+      userTypes = ['Technical Staff', 'OJT Trainee']
+    } else {
+      userTypes = ['Student','Staff','Teacher']
+    }
+
+    let { data: usersData, error: isError } = await supabase.from('tbl_users').select('*').in('user_type', userTypes).order('user_id', { ascending: false })
 
     if(!usersData) {
       return allUsersData.value = null
@@ -169,7 +195,7 @@
   }
 
   const filteredUsers = computed(() => {
-    if(statusFilter.value == 'Default') {
+    if(statusFilter.value == 'All Status') {
       return allUsersData.value
     } else {
       return allUsersData.value.filter(u => u.status == statusFilter.value)
@@ -185,6 +211,43 @@
     selectedUser.value = {...item}
     isDeleteModalOpen.value = true
     console.log(selectedUser.value)
+  }
+
+  const rejectUser  = async () => {
+    isReject.value = true
+    try {
+      let { error } = await supabase.from('tbl_users').update({ status: 'Rejected' }).eq('user_uid', selectedUser.value.user_uid)
+
+      if(error) throw error
+
+      let index = await filteredUsers.value.findIndex(u => u.user_uid == selectedUser.value.user_uid)
+
+      if(index !== -1) {
+        filteredUsers.value[index].status = 'Rejected'  
+      }
+
+      console.log('index of reject acc', filteredUsers.value)
+
+      toast.add({
+        title: 'Account Rejected!',
+        description: 'Requested account has been rejected',
+        icon: 'i-lucide-user-check',
+        color: 'warning'
+      })
+
+      isActionsModalOpen.value = false
+      isRejectModalOpen.value = false
+      isReject.value = false
+    } catch (error) {
+      toast.add({
+        title: 'Process Failed!',
+        description: 'An error occured while processing data',
+        icon: 'i-lucide-circle-x',
+        color: 'error'
+      })
+      isReject.value = false
+      console.log(error)
+    }
   }
 
   const approveUser = async () => {
@@ -322,16 +385,17 @@
         const color = {
           Pending: 'warning',
           Approved: 'success',
-          Disabled: 'neutral'
+          Disabled: 'neutral',
+          Rejected: 'neutral'
         }[row.getValue('status')]
         
         return h(UBadge, { class: 'capitalize uppercase', variant: 'subtle', color }, () => 
           row.getValue('status'))
       }
     },
-    {
-      id: 'actions',
-      header: 'Actions'
-    }
+    // {
+    //   id: 'actions',
+    //   header: 'Actions'
+    // }
   ]
     </script>

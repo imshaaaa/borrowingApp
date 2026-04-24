@@ -7,17 +7,19 @@
           <template #content>
             <div class="min-w-60 px-4 py-6 pt-[env(safe-area-inset-top)]">
               <div class="flex gap-x-4">
-                <UAvatar :alt="userStore.user.fullname" size="xl"/>
-                <p class="text-gray-800 font-bold">{{ userStore.user.firstname }} {{ userStore.user.middlename }} {{ userStore.user.lastname }} <span class="block text-xs text-gray-400">{{ userStore.user.user_type }}</span></p>
+                <UAvatar size="xl" loading="lazy" :src="`https://zijlzrpvfhkojhcpunas.supabase.co/storage/v1/object/public/profile_pictures/${userStore.user?.id}?t=${userStore.user?.pic_time_stamp}`" :alt="userStore.user.fullname"/>
+                <p class="text-gray-800 font-bold">{{ userStore.user?.firstname }} {{ userStore.user?.middlename }} {{ userStore.user?.lastname }} <span class="block text-xs text-gray-400">{{ userStore.user?.user_type }}</span></p>
               </div>
               <div class="border border-gray-100 mt-4"></div>
               <div class="text-gray-800 mt-8 flex flex-col gap-2">
-                <UButton icon="i-lucide-layout-dashboard" size="lg" color="neutral" :variant="activePath === '/admin/dashboard' ? 'solid' : 'ghost'" class="w-full" @click="toLink('dashboard')">Dashboard</UButton>
-                <UButton icon="i-lucide-box" size="lg" color="neutral" :variant="activePath === '/admin/manage-stocks' ? 'solid' : 'ghost'" class="w-full" @click="toLink('manage-stocks')">Manage Equipments</UButton>
-                <UButton icon="i-lucide-workflow" size="lg" color="neutral" :variant="activePath === '/admin/borrowed-items' ? 'solid' : 'ghost'" class="w-full" @click="toLink('borrowed-items')">Borrowed Equipments</UButton>
-                <UButton icon="i-lucide-users" size="lg" color="neutral" :variant="activePath === '/admin/manage-users' ? 'solid' : 'ghost'" class="w-full" @click="toLink('manage-users')">Manage Users</UButton>
+                <UButton icon="i-lucide-layout-dashboard" size="lg" :color="activePath === '/admin/dashboard' ? 'secondary' : 'neutral'" :variant="activePath === '/admin/dashboard' ? 'solid' : 'ghost'" class="w-full" @click="toLink('dashboard')">Dashboard</UButton>
+                
+                <UButton icon="i-lucide-box" size="lg" :color="activePath === '/admin/manage-stocks' ? 'secondary' : 'neutral'" :variant="activePath === '/admin/manage-stocks' ? 'solid' : 'ghost'" class="w-full" @click="toLink('manage-stocks')"> Equipment List</UButton>
+                <UButton icon="i-lucide-package" size="lg" :color="activePath === '/admin/inventory' ? 'secondary' : 'neutral'" :variant="activePath === '/admin/inventory' ? 'solid' : 'ghost'" class="w-full" @click="toLink('inventory')"> <span v-if="userStore.user?.user_type == 'Technical Staff'">Manage Equipment Inventory</span><span v-else>Equipment Inventory</span></UButton>
+                <UButton icon="i-lucide-workflow" size="lg" :color="activePath === '/admin/borrowed-items' ? 'secondary' : 'neutral'" :variant="activePath === '/admin/borrowed-items' ? 'solid' : 'ghost'" class="w-full" @click="toLink('borrowed-items')"> <span v-if="userStore.user?.user_type == 'Technical Staff'">Manage Borrowed Equipments</span><span v-else>Borrowed Equipments</span></UButton>
+                <UButton icon="i-lucide-users" size="lg" :color="activePath === '/admin/manage-users' ? 'secondary' : 'neutral'" :variant="activePath === '/admin/manage-users' ? 'solid' : 'ghost'" class="w-full" @click="toLink('manage-users')"> <span v-if="userStore.user?.user_type == 'Technical Staff'">Manage Users</span><span v-else>Users</span></UButton>
                 <!--<UButton icon="i-lucide-file-chart-column" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('reports')">Reports</UButton>-->
-                <UButton icon="i-lucide-history" size="lg" color="neutral" :variant="activePath === '/admin/history' ? 'solid' : 'ghost'" class="w-full" @click="toLink('history')">History</UButton>
+                <UButton icon="i-lucide-history" size="lg" :color="activePath === '/admin/history' ? 'secondary' : 'neutral'" :variant="activePath === '/admin/history' ? 'solid' : 'ghost'" class="w-full" @click="toLink('history')">History</UButton>
               </div>
             </div>
           </template>
@@ -26,7 +28,7 @@
       </div>
       <div class="flex justify-center items-center gap-2">
         <UDropdownMenu :items="profileItems">
-          <UAvatar :alt="userStore.user.fullname" size="xl" />
+          <UAvatar loading="lazy" size="xl" :src="`https://zijlzrpvfhkojhcpunas.supabase.co/storage/v1/object/public/profile_pictures/${userStore.user?.id}?t=${userStore.user?.pic_time_stamp}`" :alt="userStore.user?.fullname"/>
         </UDropdownMenu>
       </div>
     </div>
@@ -63,6 +65,7 @@
   import { LocalNotifications } from '@capacitor/local-notifications'
   //import { ref } from 'yup';
 
+  const user = useSupabaseUser()
   const supabase = useSupabaseClient()
   const ionRouter = useIonRouter()
   const router = useRouter()
@@ -98,7 +101,11 @@
   ])
   const toaster = {
     position: 'top-right',
-    duration: 3000
+    duration: 3000,
+    //class: 'pt-[env(safe-area-inset-top)]',
+    ui: {
+      viewport: 'fixed flex flex-col w-[calc(100%-2rem)] sm:w-96 z-[100] focus:outline-none mt-10'
+    }
   }
   
   useBackButton(10, (processNextHandler) => {
@@ -145,7 +152,9 @@ watch(open, (isNowOpen) => {
     isLogoutOpen.value = false
     userStore.$reset
     await nextTick()
-    router.replace('/login')
+    window.history.replaceState({}, '', '/login');
+    ionRouter.replace('/login', 'root')
+    //router.replace('/login')
     setTimeout(() => {
       toast.add({
         title: 'Logout Successfully!',
@@ -159,7 +168,9 @@ watch(open, (isNowOpen) => {
 
   const startAdminListener = async () => {
 
-    if(adminChannel) await supabase.removeChannel()
+    if(adminChannel) {
+      supabase.removeChannel(adminChannel)
+    }
     
     adminChannel = await supabase
       .channel('admin-notification-channel')
@@ -185,7 +196,7 @@ watch(open, (isNowOpen) => {
           console.log('realtime connected')
         }
         if(status === 'CLOSED') {
-          console.log('realtime connection error')
+          console.log('realtime closed')
         }
       })
   }
@@ -252,34 +263,37 @@ watch(open, (isNowOpen) => {
   // }
 
   onMounted(async () => {
-    let status = await Network.getStatus()
-    isOnline.value = status.connected
-    let lastStatus = null
+    await setupNotification()
+    startAdminListener()
 
-    if(isOnline.value) {
-      await setupNotification()
-      startAdminListener()
-      console.log('App is online')
-      //startForeground(true)
-    }
+    // let status = await Network.getStatus()
+    // isOnline.value = status.connected
+    // let lastStatus = null
 
-    Network.addListener('networkStatusChange', (s) => {
-      isOnline.value = s.connected
+    // if(isOnline.value) {
+    //   await setupNotification()
+    //   startAdminListener()
+    //   console.log('App is online')
+    //   //startForeground(true)
+    // }
 
-      if(lastStatus !== null && lastStatus.connected !== s.connected && lastStatus.connectionType !== s.connectionType) {
-          console.log('ignored Network status changed:', s)
-          return
-      }
+    // Network.addListener('networkStatusChange', (s) => {
+    //   isOnline.value = s.connected
 
-      lastStatus = s
+    //   if(lastStatus !== null && lastStatus.connected !== s.connected && lastStatus.connectionType !== s.connectionType) {
+    //       console.log('ignored Network status changed:', s)
+    //       return
+    //   }
 
-      if (s.connected) {
-        startAdminListener()
-        console.log('App is back online status changed:', s)
-      } else { 
-        console.log('App is offline status changed:', s)
-      }
-    })
+    //   lastStatus = s
+
+    //   if (s.connected) {
+    //     startAdminListener()
+    //     //console.log('App is back online status changed:', s)
+    //   } else { 
+    //     console.log('App is offline status changed:', s)
+    //   }
+    // })
 
     if (isNative) {
       LocalNotifications.addListener('localNotificationActionPerformed', (notif) => {
@@ -289,20 +303,40 @@ watch(open, (isNowOpen) => {
     }
 
     App.addListener('backButton', (data) => {
-      if(ionRouter.canGoBack()) {
-        ionRouter.goBack()
-      } else{
-        isExitApp.value = true
-      }
+      let path = window.location.pathname
+
+      // if(ionRouter.canGoBack()  ) {
+      //   if(userStore.user.user_type == 'Admin' || userStore.user.user_type == 'Technical Staff') {
+      //     ionRouter.goBack()
+      //   }
+      //   console.log('path-admin', path)
+      //   console.log('can go back?', ionRouter.canGoBack)
+      // } else{
+      //   isExitApp.value = true
+      // }
+
+      // let isAtRoot = route.path === '/admin/dashboard'
+      
+      // if(isAtRoot) {
+      //   isExitApp.value = true
+      //   return
+      // }
+
+      // if(ionRouter.canGoBack()) {
+      //   ionRouter.back()
+      // }
+
+      console.log('path', route.path)
     })
 
+    console.log('supabase_user: ',user)
   })
 
-  onUnmounted(() => {
-    //startForeground(false)
-    // if(adminChannel) {
-    //   supabase.removeChannel(adminChannel)
-    // }
-  })
+  // onUnmounted(() => {
+  //   //startForeground(false)
+  //   // if(adminChannel) {
+  //   //   supabase.removeChannel(adminChannel)
+  //   // }
+  // })
   
 </script>

@@ -8,11 +8,20 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@nuxtjs/supabase',
     '@pinia/nuxt',
-    'nuxt-qrcode'
+    'nuxt-qrcode',
+    'nuxt-charts'
   ],
   css: ['~/assets/css/main.css'],
   app: {
     baseURL: './',
+    head: {
+      meta: [
+        { 
+          name: 'viewport', 
+          content: 'width=device-width, initial-scale=1, viewport-fit=cover' 
+        }
+      ]
+    }
   },
   nitro: {
     prerender: {
@@ -21,17 +30,26 @@ export default defineNuxtConfig({
   },
   ui: {
     colorMode: false,
-    global: true,
-    primary: 'secondary',
-    toaster: {
-      slots: {
-        viewport: 'p-4 flex flex-col gap-4 bg-transparent pt-[env(safe-area-inset-top)]'
-      }
-    },
+    //global: true,
+    //primary: 'secondary',
+    // toast: {
+    //   slots: {
+    //     root: 'mt-calc(env(safe-area-inset-top) + 20px)'
+    //   }
+    // },
+    // toast: {
+    //   variants: {
+    //     position: {
+    //       'top-right': {
+    //         viewport: 'top-50'
+    //       }
+    //     }
+    //   }
+    // }
   },
   ionic: {
     config: {
-      mode: 'ios',
+      mode: 'md',
       animated: true
     },
     css: {
@@ -45,13 +63,27 @@ export default defineNuxtConfig({
   },
   supabase: {
     types:false,
-    redirect: false
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      exclude: ['/', '/register']
+    },
+    cookieOptions: {
+      maxAge: 60 * 60 * 24 * 7, 
+      sameSite: 'lax',
+      secure: true
+    }
   },
   runtimeConfig: {
     public: {
       supabaseSecretKey: process.env.SUPABASE_SECRET_KEY,
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseKey: process.env.SUPABASE_KEY
+    }
+  },
+  router: {
+    options: {
+      hashMode: false
     }
   }
 })

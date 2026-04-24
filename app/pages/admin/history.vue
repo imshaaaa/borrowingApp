@@ -1,6 +1,6 @@
 <template>
-  <IonPage>
-    <IonContent>
+  <ion-page>
+    <ion-content>
         <div class="min-h-full bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingHistoryData" />
           <div v-if="!isGettingHistoryData" class="mt-6">
@@ -31,8 +31,8 @@
           </div>
           </div>
         </div>
-    </IonContent>
-  </IonPage>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script setup>
@@ -43,20 +43,17 @@
   import dayjs from 'dayjs'
   
   definePageMeta({
-    layout: 'admin'
+    layout: 'admin',
+    middleware: 'auth'
   })
 
   const supabase = useSupabaseClient()
   const table = useTemplateRef('table')
   const UBadge = resolveComponent('UBadge')
   const toast = useToast()
-  const statusFilter = ref('Default')
-  const statusFilterItems = ref(['Default', 'Return', 'Request Denied'])
+  const statusFilter = ref('All Status')
+  const statusFilterItems = ref(['All Status', 'Returned', 'Request Denied','Archived'])
   const globalFilter = ref('')
-  const stocksData = ref([
-    { item_name: 'Hdmi Cable', borrower_name: 'Shallom Kyle Jacinto', user_id: '001-00101', room: '201', teacher:'Angel Mangubat', quantity: 10, borrow_date:'march 1', borrow_time: '10am', return_date: 'N/A', return_time:'N/A', status: 'overdue' },
-
-  ])
   const isGettingHistoryData = ref(false)
   const historyData = ref([])
 
@@ -69,7 +66,7 @@
     isGettingHistoryData.value = true
     try {
       
-      let { data, error } = await supabase.from('tbl_borrowed_item').select('*').in('status', ['Return', 'Request Denied']).order('form_id', { ascending: false })
+      let { data, error } = await supabase.from('tbl_borrowed_item').select('*').in('status', ['Returned', 'Request Denied', 'Archived']).order('form_id', { ascending: false })
 
       if(data) {
         console.log(data)
@@ -89,7 +86,7 @@
   }
 
   const filterData = computed(() => {
-    if(statusFilter.value == 'Default') {
+    if(statusFilter.value == 'All Status') {
       return historyData.value
     } else {
       return historyData.value.filter(i => i.status == statusFilter.value)
@@ -151,8 +148,9 @@
       header: 'Status',
       cell: ({ row }) => {
         const color = {
-          Return: 'success',
+          Returned: 'success',
           'Request Denied': 'error',
+          Archived: 'neutral'
         }[row.getValue('status')]
         
         return h(UBadge, { class: 'capitalize uppercase', variant: 'subtle', color }, () => 

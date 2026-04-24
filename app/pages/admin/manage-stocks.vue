@@ -1,11 +1,11 @@
 <template>
-  <IonPage>
-    <IonContent>
+  <ion-page>
+    <ion-content>
         <div class="min-h-full bg-gray-100 pt-24 px-6 mt-6">
           <LoadingTable v-if="isGettingStocksData" />
-          <div v-if="!isGettingStocksData" class="flex justify-end">
+          <!-- <div v-if="!isGettingStocksData && userStore.user.user_type != 'Admin'" class="flex justify-end">
             <UButton color="secondary" class="mr-2" @click="isQrOpen = true">Scan QR</UButton>
-          </div>
+          </div> -->
           <div v-if="!isGettingStocksData" class="mt-6">
             <div class="flex justify-between mb-4 gap-x-4 gap-y-2 flex-wrap">
               <UInput v-model="globalFilter" placeholder="Search" color="secondary" class="w-full sm:w-auto">
@@ -22,19 +22,22 @@
               </UInput>
               <div class="flex gap-2">
                 <USelect v-model="Filter" class="w-auto" color="secondary" variant="outline" :items="FilterItems"/>
-                <USelect v-model="statusFilter" class="w-auto" color="secondary" variant="outline" :items="statusFilterItems"/>
+                <!-- <USelect v-model="statusFilter" class="w-auto" color="secondary" variant="outline" :items="statusFilterItems"/> -->
               </div>
             </div>
-            <UTable ref="table" :data="filteredStocksByStatus" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
+            <!-- <UTable ref="table" :data="filteredStocksByStatus" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
               <template #actions-cell="{ row }">
-                <UButton variant="soft" color="neutral" @click="openActionsModal(row.original)">
-                  <UIcon name="i-lucide-pen"></UIcon>
-                </UButton>
-                <UButton class="ml-2" variant="subtle" color="error" @click="openDeleteModal(row.original)">
-                  <UIcon name="i-lucide-trash"></UIcon>
-                </UButton>
+                <div v-if="userStore.user.user_type !== 'Admin'">
+                  <UButton variant="soft" color="neutral" @click="openActionsModal(row.original)">
+                    <UIcon name="i-lucide-pen"></UIcon>
+                  </UButton>
+                  <UButton class="ml-2" variant="subtle" color="error" @click="openDeleteModal(row.original)">
+                    <UIcon name="i-lucide-trash"></UIcon>
+                  </UButton>
+                </div>
               </template>
-            </UTable>
+            </UTable> -->
+            <UTable ref="table" :columns="columns" v-model:global-filter="globalFilter" :data="allStocks" class="flex-1 bg-white rounded-lg p-2" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }" />
             <div class="flex justify-center border-t border-default pt-4 px-4">
             <UPagination color="neutral" activeColor="neutral"
               :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
@@ -91,18 +94,20 @@
             </UModal>
           </div>
         </div>
-    </IonContent>
-  </IonPage>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script setup>
   onIonViewWillEnter(() => {
     isGettingStocksData.value = true
-    getStocks()
+    //getStocks()
+    getEquipments()
   })
   
   definePageMeta({
-    layout: 'admin'
+    layout: 'admin',
+    middleware: 'auth'
   })
   import { object, string, number } from 'yup'
   import { h, resolveComponent } from 'vue'
@@ -114,15 +119,16 @@
   const UBadge = resolveComponent('UBadge')
   const toast = useToast()
   const open = ref(false)
+  const userStore = useUserStore()
   const isActionsModalOpen = ref(false)
   const isDeleteModalOpen = ref(false)
   const selectedItem = ref({})
   const isGettingStocksData = ref(false)
   const statusItems = ref(['Available','Not Available'])
-  const FilterItems = ['Default','Computer Hardware','Network and Cabling','Repair and Maintenance Tools','Power Equipment','Audio-Visual Devices','Remote Controls']
+  const FilterItems = ['All Categories','Computer Hardware','Network and Cabling','Repair and Maintenance Tools','Power Equipment','Audio-Visual Devices','Remote Controls']
   const statusFilterItems = ref(['Default', 'Available', 'Not Available'])
   const globalFilter = ref('')
-  const Filter = ref('Default')
+  const Filter = ref('All Categories')
   const statusFilter = ref('Default')
   const allStocks = ref()
   const isMode = ref()
@@ -152,7 +158,7 @@
   })
 
   const getStocks = async () => {
-    let { data: stocks, error: isError } = await supabase.from('tbl_item').select('*')
+    let { data: stocks, error: isError } = await supabase.from('tbl_item').select('*').order('status', { ascending: true })
 
     if(isError) {
       toast.add({
@@ -197,12 +203,35 @@
   }
 
   const filteredStocks = computed(() => {
-    if(Filter.value == 'Default') {
+    if(Filter.value == 'All Categories') {
       return allStocks.value
     } else {
       return allStocks.value.filter(i => i.category == Filter.value)
     }
   })
+
+  const getEquipments = async () => {
+    isGettingStocksData.value = true
+    try {
+      let { data, error } = await supabase.from('tbl_item_models').select('*').order('quantity', { ascending: false })
+
+      if(error) throw error
+      
+      allStocks.value = data
+      isGettingStocksData.value = false
+      console.log(allStocks.value)
+
+    } catch (error) {
+      toast.add({
+        title: 'Server error',
+        description: 'An error occured while getting data',
+        icon: 'i-lucide-circle-x',
+        color: 'error'
+      })
+      console.log(error)
+      isGettingStocksData.value = false
+    }
+  }
 
   const filteredStocksByStatus = computed(() => {
     if(statusFilter.value == 'Default') {
@@ -364,12 +393,12 @@
   // for UTable
   const columns = [
     { 
-      accessorKey: 'item_id',
-      header: 'Equipment ID'
+      accessorKey: 'id',
+      header: 'Model ID'
     },
     { 
       accessorKey: 'item_name',
-      header: 'Item Name'
+      header: 'Equipment Name'
     },
     { 
       accessorKey: 'category',
@@ -379,22 +408,24 @@
       accessorKey: 'quantity',
       header: 'Quantity'
     },
-    { 
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }) => {
-        const color = {
-          Available: 'success',
-          'Not Available': 'error',
-        }[row.getValue('status')]
+    // { 
+    //   accessorKey: 'status',
+    //   header: 'Status',
+    //   cell: ({ row }) => {
+    //     const color = {
+    //       Available: 'success',
+    //       'Not Available': 'error',
+    //     }[row.getValue('status')]
         
-        return h(UBadge, { class: 'capitalize', variant: 'subtle', color }, () => 
-          row.getValue('status'))
-      }
-    },
-    {
-      id: 'actions',
-      header: 'Actions'
-    }
+    //     return h(UBadge, { class: 'capitalize', variant: 'subtle', color }, () => 
+    //       row.getValue('status'))
+    //   }
+    // },
+    // {
+    //   id: 'actions',
+    //   header: 'Actions'
+    // }
   ]
+
+  
 </script>

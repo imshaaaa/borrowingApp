@@ -15,13 +15,15 @@ export const useUserStore = defineStore('userStore', {
       status: null,
       user_type: null,
       username: null,
-      year_level: null
+      year_level: null,
+      section: null,
+      pic_time_stamp: null
     }
   }),
   actions: {
     setUserData(data) {
       
-      const { admin_id, employee_id, student_id, contact_number, course, department, email, firstname, middlename, lastname, status, user_type, username, year_level } = data
+      const { admin_id, employee_id, student_id, contact_number, course, department, email, firstname, middlename, lastname, status, user_type, username, year_level, section } = data
 
       this.user = {
         id: admin_id || employee_id || student_id || null,
@@ -36,8 +38,14 @@ export const useUserStore = defineStore('userStore', {
         status: status,
         user_type: user_type,
         username: username,
-        year_level: year_level || null
+        year_level: year_level || null,
+        section: section || null,
+       
       }
+    },
+
+    setTimeStamp(timeStamp) {
+      this.user.pic_time_stamp = timeStamp
     }
   }
 })

@@ -1,6 +1,6 @@
 <template>
-  <IonPage>
-    <IonContent>
+  <ion-page>
+    <ion-content>
         <div class="min-h-full bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingAvailableData"/>
           <div v-if='!isGettingAvailableData' class="mt-6">
@@ -35,7 +35,7 @@
               @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)"
             />
           </div>
-            <UModal title="Borrow Equipment" v-model:open="isBorrowModalOpen" :dismissible="false" :close="!isSubmittingForm">
+            <UModal :title="borrowTitle" v-model:open="isBorrowModalOpen" :dismissible="false" :close="!isSubmittingForm">
               <template #body="{ close }">
                 <UForm :schema="schema" :state="state" @submit="submitRequest">
                   <UFormField label="Borower Name" class="mt-4" name="borrowerName">
@@ -57,7 +57,7 @@
                         </UButton>
                       </div>
                     </template>
-                    <div class="flex items-center gap-2" v-for="(item, index) in selectedItemName" :key='item.item_id'>
+                    <div class="flex items-center gap-2" v-for="(item, index) in selectedItemName" :key='item.id'>
                       
                     <UInput color="secondary" variant="subtle" size="xl" class="w-full mt-2" placeholder="Item name" v-model="selectedItemName[index].item_name" disabled>
                       <template #trailing>
@@ -72,7 +72,7 @@
                     </UInput>
                     <UButton v-if="selectedItemName.length > 1" variant="link" icon="i-lucide-trash" color="error" @click="removeFromList(index,item.item_id)"></UButton>
                     </div>
-                  </UFormField>
+                  </UFormField> 
                   <UFormField label="Teachers Name" class="mt-4" name="teachersName" hint="(optional)">
                     <UInput color="secondary" variant="subtle" size="xl" class="w-full" placeholder="" v-model="state.teachersName" />
                   </UFormField>
@@ -109,7 +109,7 @@
                   <UInput v-model="searchItem" class="mb-2 bg-gray-100" placeholder="Search for an item..." color="secondary" variant="subtle"/>
                   <UTable v-model:global-filter="searchItem" :data="filteredData" :columns="selectColumns" class="flex-1 bg-gray-50 rounded-lg">
                     <template  #action-cell="{ row }">
-                      <UButton @click="addItem(row.original)" color="secondary">Add Item</UButton>
+                      <UButton @click.once="addItem(row.original)" color="secondary">Add Item</UButton>
                     </template>
                   </UTable>
                 </div>
@@ -117,8 +117,8 @@
             </UModal>
           </div>
         </div>
-    </IonContent>
-  </IonPage>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script setup>
@@ -136,7 +136,8 @@
   import dayjs from 'dayjs'
   
   definePageMeta({
-    layout: 'user'
+    layout: 'user',
+    middleware: 'auth'
   })
 
   const table = useTemplateRef('table')
@@ -148,8 +149,8 @@
   const isBorrowModalOpen = ref(false)
   const statusItems = ref(['Available','Not-Available'])
   const globalFilter = ref('')
-  const categoryFilterItems = ['Default','Computer Hardware','Network and Cabling','Repair and Maintenance Tools','Power Equipment','Audio-Visual Devices','Remote Controls']
-  const categoryFilter = ref('Default')
+  const categoryFilterItems = ['All Categories','Computer Hardware','Network and Cabling','Repair and Maintenance Tools','Power Equipment','Audio-Visual Devices','Remote Controls']
+  const categoryFilter = ref('All Categories')
   const isReserve = ref(false)
   const isGettingAvailableData = ref(false)
   const availableItemsData = ref([])
@@ -166,6 +167,7 @@
   const maxDate = dayjs().add(3, 'days').format('YYYY-MM-DD')
   const borrowDateError = ref(null)
   const recommendedTime = new Date().setHours(20,0,0)
+  const borrowTitle = ref()
   
   const schema = object({
     borrowerName: string().required('name is required'),
@@ -193,7 +195,7 @@
   })
 
   const getAvailableItems = async () => {
-    let { data: items, error: isError } = await supabase.from('tbl_item').select('*').eq('status', 'Available').gt('quantity', 0)
+    let { data: items, error: isError } = await supabase.from('tbl_item_models').select('*').gt('quantity', 0)
 
     if(isError) {
       toast.add({
@@ -214,7 +216,7 @@
   }
 
   const filteredItems = computed(() => {
-    if(categoryFilter.value == 'Default') {
+    if(categoryFilter.value == 'All Categories') {
       return availableItemsData.value
     } else {
       return availableItemsData.value.filter(i => i.category == categoryFilter.value)
@@ -231,20 +233,22 @@
     state.quantity = selectedItemName.value.length
     state.itemName = item.item_name
     selectedItemName.value.push({
-      item_id: item.item_id,
+      item_id: item.id,
       item_name: item.item_name,
       quantity: 1
     })
 
-    selectedId.value.push(item.item_id)
+    selectedId.value.push(item.id)
     
     if(type == 'borrow') {
+      borrowTitle.value = "Borrow Equipment"
       isReserve.value = false
       state.borrowDate = dayjs().format('YYYY-MM-DD')
       state.returnDate = dayjs().format('YYYY-MM-DD')
     }
     if(type == 'reserve') {
-     isReserve.value = true
+      borrowTitle.value = 'Reserve Equipment'
+      isReserve.value = true
       state.borrowDate = undefined
       state.returnDate = undefined
     }
@@ -255,18 +259,19 @@
   }
 
   const addMoreModal = () => {
-    filteredData.value = availableItemsData.value.filter(i => !selectedId.value.includes(i.item_id))
+    filteredData.value = availableItemsData.value.filter(i => !selectedId.value.includes(i.id))
     console.log(filteredData.value)
+    console.log('selected id', selectedId.value )
     addMoreModalOpen.value = true
   }
 
   const addItem = (item) => {
     selectedItemName.value.push({
-      item_id: item.item_id,
+      item_id: item.id,
       item_name: item.item_name,
       quantity: 1
     })
-    selectedId.value.push(item.item_id)
+    selectedId.value.push(item.id)
     console.log(selectedId.value)
     addMoreModalOpen.value = false
   }

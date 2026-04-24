@@ -38,7 +38,7 @@
             <USelect color="secondary" variant="subtle" v-model="state.yearLevel" :items="yearLevelItems" size="xl" class="w-full" placeholder="Select year level"/>
           </UFormField>
           <UFormField label="Section" name="section" class="mt-4" v-if="state.registerAs == 'Student'">
-            <UInput color="secondary" variant="subtle" v-model="state.section" size="xl" class="w-full" placeholder="e.g BSIT22C"/>
+            <UInput color="secondary" variant="subtle" v-model="state.section" size="xl" class="w-full" placeholder="e.g IT22C"/>
           </UFormField>
           <UFormField label="Department" name="department" class="mt-4" v-if="state.registerAs == 'Teacher'">
             <USelect color="secondary" variant="subtle" v-model="state.department" :items="teachersDepartment" size="xl" class="w-full" placeholder="Select department"/>
@@ -139,10 +139,9 @@
   const regAsItems = ref(['Student', 'Teacher','Staff'])
   const courseItems = ref(['ABM','GAS','STEM','HUMSS','TVL','BSIT','BSCS','BSA','BSBA','BSHM','TESDA'])
   const yearLevelItems = ref(['grade 11','grade 12','1st year', '2nd year','3rd year', '4th year'])
-  const department = ref(['Senior High School','Computer Studies','Hospitality','General Education','Business & Accountancy','Records Section /Registrar','Finance','Admission','Guidance','Human Resources','Library Service Scholarship'])
   const teachersDepartment = ref(['Senior High School','Computer Studies','Hospitality','General Education','Business & Accountancy'])
   const staffDepartment = ref(['Records Section /Registrar','Finance','Admission','Guidance','Human Resources','Library Service Scholarship'])
-  const specificItems = ref(['Mayor', 'Vice Mayor', 'Secretary', 'Section'])
+  const specificItems = ref(['Mayor', 'Vice Mayor', 'Secretary'])
   
   const studentIdMask = {
     mask: 'A##-##-####-AAA###',

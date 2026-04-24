@@ -6,6 +6,12 @@
   "Plugins": {
     "StatusBar": {
       "overlaysWebView": false
+    },
+    "CapacitorCookies": {
+      "enabled": true
+    },
+    "CapacitorHttp": {
+      "enabled": true
     }
   }
 }

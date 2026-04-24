@@ -51,7 +51,7 @@
 
 <script setup>
   import { useRouter } from 'vue-router'
-import { object, string } from 'yup'
+  import { object, string } from 'yup'
   
   const supabase = useSupabaseClient()
   const user = useSupabaseUser()
@@ -129,35 +129,60 @@ import { object, string } from 'yup'
           isLogin.value = false
           return
         }
+
+        // let userID = userData.admin_id || userData.employee_id || userData.student_id
+
+        // let { data } = await supabase.storage.from('profile_pictures').getPublicUrl(userID)
         
         if(userData.status == 'Approved'){
-          await userStore.setUserData(userData)
+          userStore.setUserData(userData)
+          //userStore.setUserData(userData, data.publicUrl)
           await nextTick()
-          if(userStore.user.user_type == 'Admin') {
-             await router.replace('/admin/dashboard')
+          if(userStore.user?.user_type == 'Admin' || userStore.user?.user_type == 'Technical Staff') {
+            window.history.replaceState({}, '', '/admin/dashboard');
+
+            ionRouter.replace('/admin/dashboard', 'root')
+             //await router.replace('/admin/dashboard')
             setTimeout(() => {
               toast.add({
                 title: 'Welcome!',
-                description: `Welcome back ${userStore.user.firstname}`,
+                description: `Welcome back ${userStore.user?.firstname}`,
                 icon: 'i-lucide-message-circle-check',
                 color: 'secondary'
               
               })
             },500)
-            console.log('success?')
+            console.log('success?', userStore.user)
           
           }
           if(userData.user_type == 'Student' || userData.user_type == 'Teacher' || userData.user_type == 'Staff') {
-            await router.replace('/user/dashboard')
+            window.history.replaceState({}, '', '/user/available-items');
+
+            ionRouter.replace('/user/available-items','root')
+            //await router.replace('/user/available-items')
             setTimeout(() => {
               toast.add({
                 title: 'Welcome!',
-                description: `Welcome back ${userStore.user.firstname}`,
+                description: `Welcome back ${userStore.user?.firstname}`,
                 icon: 'i-lucide-message-circle-check',
                 color: 'secondary'
               
               })
             },500)
+
+            console.log('success?', userStore.user)
+
+          }
+          if(userData.user_type == 'OJT Trainee') {
+            await supabase.auth.signOut()
+            isLogin.value = false
+            toast.add({
+              title: 'Invalid!',
+              description: 'Mobile access denied for OJT account.',
+              icon: 'i-lucide-user-x',
+              color: 'error'
+            
+            })
           }
         }
         
@@ -185,6 +210,11 @@ import { object, string } from 'yup'
     resetForm()
     ionRouter.navigate('/register', 'forward', 'push')
   }
+
+  definePageMeta({
+    layout: 'default',
+    //middleware: 'auth'
+  })
 
   onMounted(() => {
     console.log("isLogged in?", user.value)

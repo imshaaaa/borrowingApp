@@ -1,6 +1,6 @@
 <template>
-  <IonPage>
-    <IonContent>
+  <ion-page>
+    <ion-content>
         <div class="min-h-screen bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingBorrowedItems" />
           <div v-else class="mt-6">
@@ -74,8 +74,8 @@
             </UModal>
           </div>
         </div>
-    </IonContent>
-  </IonPage>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script setup>
@@ -86,7 +86,8 @@
   import { onIonViewWillEnter, onIonViewWillLeave } from '#imports'
   
   definePageMeta({
-    layout: 'user'
+    layout: 'user',
+    middleware: 'auth'
   })
 
   onIonViewWillEnter(() => {
@@ -104,8 +105,8 @@
   const selectedItem = ref({})
   const statusItems = ref(['Available','Not-Available'])
   const globalFilter = ref('')
-  const statusFilterItems = ref(['Default', 'Pending', 'On Going', 'Overdue', 'Returned', 'Request Denied', 'Request Expired'])
-  const statusFilter = ref('Default')
+  const statusFilterItems = ref(['All Status', 'Pending', 'On Going', 'Overdue', 'Returned', 'Request Denied', 'Request Expired'])
+  const statusFilter = ref('All Status')
   const currentDate = ref(today(getLocalTimeZone()))
   const borrowTime = ref('07:00')
   const returnDate = ref(today(getLocalTimeZone()))
@@ -144,7 +145,7 @@
   }
 
   const filteredBorrowedItems = computed(() => {
-    if(statusFilter.value == 'Default') {
+    if(statusFilter.value == 'All Status') {
       return borrowedItems.value
     } else {
       return borrowedItems.value.filter(i => i.status == statusFilter.value)
@@ -219,6 +220,7 @@
           'Request Denied': 'error',
           'On Going': 'secondary',
           Overdue: 'error',
+          Unreturned: 'error',
           Returned: 'success',
           'Request Expired': 'neutral'
         }[row.getValue('status')]
