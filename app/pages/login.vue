@@ -38,6 +38,9 @@
               </template>
             </UInput>
           </UFormField>
+          <div class="flex justify-end">
+            <UButton variant="ghost" color="neutral" @click="toForgot" class="jus">Forgot password?</UButton>
+          </div>
           <UButton v-if="!isLogin" type="submit" color="secondary" size="xl" class="flex justify-center w-full mt-6">Sign in</UButton>
           <UButton v-if="isLogin" color="secondary" size="xl" class="flex justify-center w-full mt-6" loading>Signing in...</UButton>
           <p class="text-center text-sm mt-4">Don't have an account? <span @click="toRegister" class='text-blue-600'>Register</span></p>
@@ -85,6 +88,13 @@
       
       const { data: userData, error: isUserErr } = await supabase.from('tbl_users').select('*').eq('username', state.username).maybeSingle()
       
+      let currentCount = userData?.failed_attempts || 0
+      let newCount = currentCount + 1
+      let isLocked = false
+      let lockUntil = null
+      let now = new Date()
+      let lockTime = new Date(userData?.locked_until)
+
       if(!userData) {
         isUsernameError.value = 'Username doesnt exists'
         isLogin.value = false
@@ -103,17 +113,57 @@
         return
       }
 
+      if(now < lockTime && userData.is_locked) {
+
+        let remainingTime = Math.ceil((lockTime - now) / 60000)
+        toast.add({
+          title: 'Account Error',
+          description: `Your account account is locked, please try again in ${remainingTime} minutes`,
+          icon: 'i-lucide-user-x',
+          color: 'error'
+        })
+        isLogin.value = false
+        return
+      }
+
       const { error: isLoginError } = await supabase.auth.signInWithPassword({
         email: userData.email,
         password: state.password
-      })
+      }) 
+
 
       if(isLoginError) {
         if(isLoginError.code == 'invalid_credentials') {
+          let date = new Date()
+
+          if(newCount >= 3) {
+            date.setMinutes(date.getMinutes() + 5)
+            lockUntil = date.toISOString()
+            isLocked = true
+          }
+          if(newCount >= 5) {
+            date.setMinutes(date.getMinutes() + 10)
+            lockUntil = date.toISOString()
+            isLocked = true
+          }
+          if(newCount >= 7) {
+            date.setMinutes(date.getMinutes() + 60)
+            lockUntil = date.toISOString()
+            isLocked = true
+          }
+
+          let { error } = await supabase.from('tbl_users').update({ failed_attempts: newCount, locked_until: lockUntil, is_locked: isLocked }).eq('email', userData.email)
+
+          if(error) throw error
+
           isPassError.value = "Invalid password"
         }
         isLogin.value = false
         return
+      } else {
+        let { error } = await supabase.from('tbl_users').update({ failed_attempts: 0, locked_until: null, is_locked: false }).eq('email', userData.email)
+
+        if(error) throw error
       }
 
       if(userData) {
@@ -209,6 +259,11 @@
   const toRegister = () => {
     resetForm()
     ionRouter.navigate('/register', 'forward', 'push')
+  }
+
+  const toForgot = () => {
+    resetForm()
+    ionRouter.navigate('/forgot-pass', 'forward', 'push')
   }
 
   definePageMeta({

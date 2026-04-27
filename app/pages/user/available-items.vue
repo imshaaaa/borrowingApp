@@ -90,10 +90,11 @@
                     <UInput variant="subtle" color="secondary" type="time" v-model="state.borrowTime"/>
                   </UFormField>
                   <UFormField label="Return Date" class="mt-4" name="returnDate">
-                    <UInput type="date" variant="subtle" v-model="state.returnDate" disabled />
+                    <UInput type="date" variant="subtle" color="secondary" v-model="state.returnDate" :min="todayDate" :max="maxDate" @change="checkIfSunday" :disabled="isReserve ? false : true"/>
+
                   </UFormField>
                   <UFormField label="Return Time" class="mt-4" name="returnTime" >
-                    <UInput variant="subtle" color="secondary" type="time" v-model="state.returnTime" disabled/>
+                    <UInput variant="subtle" color="secondary" type="time" v-model="state.returnTime" :disabled="isReserve ? false : true"/>
                   </UFormField>
                   <div class="flex justify-end gap-x-2 mt-6 mb-2">
                       <UButton color="error" variant="outline" @click="handleModalClose(close)" :disabled="isSubmittingForm" size="lg">Cancel</UButton>
@@ -340,7 +341,8 @@
       let { error: isNotifErr } = await supabase.from('tbl_notifications').insert([
         {
           title: 'Borrow Request',
-          message: `${userStore.user.firstname} ${userStore.user.middlename} ${userStore.user.lastname} borrow request`
+          message: `${userStore.user.firstname} ${userStore.user.middlename} ${userStore.user.lastname} is waiting for approval`,
+          timestamp: new Date().toISOString()
         }
       ]).select()
 

@@ -370,7 +370,7 @@
 
     try {
       let updateItems = itemsToUpdate.map(d => {
-        return supabase.from('tbl_item').update({ quantity: d.quantity }).eq('item_name', d.item_name)
+        return supabase.from('tbl_item_models').update({ quantity: d.quantity }).eq('item_name', d.item_name)
       })
 
       let results = await Promise.all(updateItems)
@@ -545,22 +545,22 @@
     return
     }
 
-    // let { error: setQuantityError } = await supabase.from('tbl_item').update({ quantity: newQuantity, status: 'Available' }).eq('item_name', itemsToReturn[0].item_name)
+    let { error: setQuantityError } = await supabase.from('tbl_item_models').update({ quantity: newQuantity }).eq('item_name', itemsToReturn[0].item_name)
 
-    // if(setQuantityError) {
-    //   toast.add({
-    //     title: 'Server error',
-    //     description: 'An error occured while updating data',
-    //     icon: 'i-lucide-circle-x',
-    //     color: 'error'
-    //   })
-    //   console.log(setQuantityError)
-    //   isConfirmModalOpen.value = false
-    //   isMarkAsReturning.value = false
-    //   return
-    // }
+    if(setQuantityError) {
+      toast.add({
+        title: 'Server error',
+        description: 'An error occured while updating data',
+        icon: 'i-lucide-circle-x',
+        color: 'error'
+      })
+      console.log(setQuantityError)
+      isConfirmModalOpen.value = false
+      isMarkAsReturning.value = false
+      return
+    }
 
-    // borrowedItemsData.value = borrowedItemsData.value.filter(d => !targetIds.includes(d.form_id))
+    borrowedItemsData.value = borrowedItemsData.value.filter(d => !targetIds.includes(d.form_id))
     
 
     toast.add({

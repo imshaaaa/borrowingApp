@@ -10,7 +10,7 @@
               <div class="flex justify-center mb-8">
                 <UAvatar class="h-24 w-24" :src="`https://zijlzrpvfhkojhcpunas.supabase.co/storage/v1/object/public/profile_pictures/${userStore.user.id}?t=${picKey}`" :alt="userStore.user.fullname"/>
                 <UModal title="Update Profile Picture" :ui="{ footer: 'justify-end' }" :close="!isUpdating" :dismissible="false">
-                  <UButton v-if="!isEdit" icon="i-lucide-pen"  size="xs" color="neutral" class="absolute mt-16 ml-18 rounded-lg" />
+                  <UButton v-if="isEdit" icon="i-lucide-pen"  size="xs" color="neutral" class="absolute mt-16 ml-18 rounded-lg" />
                   <template #body>
                     <div class="w-full flex justify-center">
                       <UFileUpload accept="image/*" v-model="isProfilePic" label="Drop your image here" description="PNG, JPG (max. 30MB)" class="w-50 min-h-full"/>

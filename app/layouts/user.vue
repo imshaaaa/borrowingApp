@@ -179,48 +179,51 @@ watch(open, (isNowOpen) => {
           table: 'tbl_borrowed_item',
           filter: `borrower_id=eq.${userStore.user.id}`
         }, (payload) => {
-          console.log('request approved',  payload)
-          if(payload.new.status == 'On Going') {
-            toast.add({
-              title: 'Borrow Request Approved!',
-              description: `Your request of ${payload.new.item} have been approved!`,
-              icon: 'i-lucide-message-circle-check',
-              color: 'success'
-            })
+          console.log('request approved old val',  payload.old)
+
+          if(payload.old.status !== payload.new.status) {
+            if(payload.new.status == 'On Going') {
+              toast.add({
+                title: 'Borrow Request Approved!',
+                description: `Your request of ${payload.new.item} has been approved!`,
+                icon: 'i-lucide-message-circle-check',
+                color: 'success'
+              })
+            }
+            if(payload.new.status == 'Unreturned') {
+              toast.add({
+                title: 'Overdue Borrowed Equipment!',
+                description: `Your borrowed ${payload.new.item} equipment is now overdue!`,
+                icon: 'i-lucide-message-circle-check',
+                color: 'warning'
+              })
+            }
+            if(payload.new.status == 'Request Denied') {
+              toast.add({
+                title: 'Borrow Request Denied!',
+                description: `Your request of ${payload.new.item} has been denied!`,
+                icon: 'i-lucide-message-circle-x',
+                color: 'error'
+              })
+            }
+            if(payload.new.status == 'Returned') {
+              toast.add({
+                title: 'Equipment Returned!',
+                description: `Your borrowed equipment ${payload.new.item} has been returned!`,
+                icon: 'i-lucide-message-circle-check',
+                color: 'success'
+              })
+            }
+            if(payload.new.status == 'Request Expired') {
+              toast.add({
+                title: 'Request Expired!',
+                description: `Your requested equipment ${payload.new.item} is expired!`,
+                icon: 'i-lucide-message-circle-check',
+                color: 'warning'
+              })
+            }
+            triggerNotif(payload)
           }
-          if(payload.new.status == 'Unreturned') {
-            toast.add({
-              title: 'Overdue Borrowed Equipment!',
-              description: `Your borrowed ${payload.new.item} equipment is now overdue!`,
-              icon: 'i-lucide-message-circle-check',
-              color: 'warning'
-            })
-          }
-          if(payload.new.status == 'Request Denied') {
-            toast.add({
-              title: 'Borrow Request Denied!',
-              description: `Your request of ${payload.new.item} has been denied!`,
-              icon: 'i-lucide-message-circle-x',
-              color: 'error'
-            })
-          }
-          if(payload.new.status == 'Returned') {
-            toast.add({
-              title: 'Equipment Returned!',
-              description: `Your borrowed equipment ${payload.new.item} has been return!`,
-              icon: 'i-lucide-message-circle-check',
-              color: 'success'
-            })
-          }
-          if(payload.new.status == 'Request Expired') {
-            toast.add({
-              title: 'Request Expired!',
-              description: `Your requested equipment ${payload.new.item} is expired!`,
-              icon: 'i-lucide-message-circle-check',
-              color: 'warning'
-            })
-          }
-          triggerNotif(payload)
         }
       )
       .subscribe((status) => {

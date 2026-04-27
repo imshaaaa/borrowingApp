@@ -25,11 +25,11 @@
           <UFormField label="Lastname" name="lastname" class="mt-4" v-if="state.specificRole != 'Section'">
             <UInput v-model="state.lastname" color="secondary" variant="subtle" size="xl" class="w-full ring-blue-600" placeholder="Doe"/>
           </UFormField>
-          <UFormField label="Teacher/Staff ID" name="teacherStaffID" class="mt-4" v-if="state.registerAs == 'Teacher' || state.registerAs == 'Staff'">
+          <UFormField :error="state.registerAs == 'Teacher' || state.registerAs == 'Staff' ? isIdError : ''"  label="Teacher/Staff ID" name="teacherStaffID" class="mt-4" v-if="state.registerAs == 'Teacher' || state.registerAs == 'Staff'">
             <UInput v-model="state.teacherStaffID" v-maska="teacherStaffIdMask" color="secondary" variant="subtle" size="xl" class="w-full ring-blue-600" placeholder="00-00001"/>
           </UFormField>
-          <UFormField label="Student ID" name="studentID" class="mt-4" v-if="state.registerAs == 'Student' && state.specificRole != 'Section'">
-            <UInput v-model="state.studentID" v-maska="studentIdMask" color="secondary" variant="subtle" size="xl" class="w-full ring-blue-600" placeholder="C01-0-0001-MAN123"/>
+          <UFormField :error="state.registerAs == 'Student' ? isIdError : ''" label="Student ID" name="studentID" class="mt-4" v-if="state.registerAs == 'Student' && state.specificRole != 'Section'">
+            <UInput v-model="state.studentID" v-maska="studentIdMask" color="secondary" variant="subtle" size="xl" class="w-full ring-blue-600" placeholder="C01-00-0001-MAN123"/>
           </UFormField>
           <UFormField label="Course / Program" name="courses" class="mt-4" v-if="state.registerAs == 'Student'">
             <USelect color="secondary" variant="subtle" v-model="state.courses" :items="courseItems" size="xl" class="w-full" placeholder="Select course/strand"/>
@@ -125,6 +125,7 @@
   
   import { object, string, ref as yupRef } from 'yup'
   import { vMaska } from 'maska/vue'
+import { user } from '#build/ui'
   
   const supabase = useSupabaseClient()
   const ionRouter = useIonRouter()
@@ -135,6 +136,7 @@
   const isSignUp = ref(false)
   const isEmailError = ref(null)
   const isUsernameError = ref(null)
+  const isIdError = ref(null)
   
   const regAsItems = ref(['Student', 'Teacher','Staff'])
   const courseItems = ref(['ABM','GAS','STEM','HUMSS','TVL','BSIT','BSCS','BSA','BSBA','BSHM','TESDA'])
@@ -169,12 +171,12 @@
     }),
     middlename: string().when('specificRole', {
       is: (val) => val != 'Section',
-      then: (schema) => schema.trim().min(3, 'must be atleast 3 characters').required('middlename is required'),
+      then: (schema) => schema.trim().min(2, 'must be atleast 2 characters').required('middlename is required'),
       otherwise: (schema) => schema.strip()
     }),
     lastname: string().when('specificRole', {
       is: (val) => val != 'Section',
-      then: (schema) => schema.trim().min(3, 'must be atleast 3 characters').required('lastname is required'),
+      then: (schema) => schema.trim().min(2, 'must be atleast 2 characters').required('lastname is required'),
       otherwise: (schema) => schema.strip()
     }),
     teacherStaffID: string().when('registerAs', {
@@ -241,6 +243,7 @@
   const onSubmit = async () => {
     isEmailError.value = null
     isUsernameError.value = null
+    isIdError.value = null
     isSignUp.value = await true
     try {
       const { data: existingUser } = await supabase.from('tbl_users').select('username').eq('username', state.username).maybeSingle()
@@ -250,6 +253,30 @@
         isSignUp.value = false
         return
       }
+
+      let userID
+      let typeID
+
+      if(state.studentID) {
+        userID = state.studentID
+        typeID = 'student_id'
+      }
+
+      if(state.teacherStaffID) {
+        userID = state.teacherStaffID
+        typeID = 'employee_id'
+      }
+
+      let { data: existingId } = await supabase.from('tbl_users').select(typeID).eq(typeID, userID).maybeSingle()
+
+      if(existingId) {
+        isIdError.value = "this id is already exist"
+        isSignUp.value = false
+        return
+      }
+
+      console.log('id',userID, typeID)
+      console.log('data', existingId)
       
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: state.email,
@@ -292,6 +319,17 @@
           })
           isSignUp.value = false
         }
+
+        let { error: isNotifErr } = await supabase.from('tbl_notifications').insert([
+          {
+            title: 'New Registration',
+            message: `New ${state.registerAs}: ${state.firstname} ${state.middlename} ${state.lastname} is waiting for approval`,
+            timestamp: new Date().toISOString()
+          }
+        ]).select()
+
+        if(isNotifErr) throw error
+
           toast.add({
             title: 'Account created successfully',
             description: 'Pending for admin approval. redirected',
@@ -327,6 +365,7 @@
     state.username = ""
     state.password = ""
     state.confirmPass = ""
+    isIdError.value = null
   }
   
   const toLogin = async () => {

@@ -25,7 +25,7 @@
                 <p v-else class="text-xl font-bold mt-auto pt-2">{{ allUsersLength }}</p>
               </div>
             </div>
-            <div class="flex-1 min-w-[calc(50%-0.5rem)] flex flex-col bg-white py-2 px-4 rounded-lg shadow">
+            <div class="flex-1 min-w-[calc(50%-0.5rem)] flex flex-col bg-white py-2 px-4 rounded-lg shadow" @click="setType('unreturned')">
               <p class="text-gray-500 text-sm">
                 <UIcon name="i-lucide-circle-alert" class="text-red-600 mr-2" />
                 Unreturned
@@ -33,7 +33,7 @@
               <UButton v-if="isGettingData" class="mt-auto pt-2" variant="soft" color="neutral" loading></UButton>
               <p v-else class="text-xl font-bold mt-auto pt-2">{{ allBorrowedData.filter(i => i.status == "Unreturned").length }}</p>
             </div>
-            <div class="flex-1 min-w-[calc(50%-0.5rem)] flex flex-col bg-white py-2 px-4 rounded-lg shadow">
+            <div class="flex-1 min-w-[calc(50%-0.5rem)] flex flex-col bg-white py-2 px-4 rounded-lg shadow" @click="setType('pending')">
               <p class="text-gray-500 text-sm">
                 <UIcon name="i-lucide-hourglass" class="text-orange-600 mr-2" />
                 Pending Request
@@ -41,7 +41,7 @@
              <UButton v-if="isGettingData" class="mt-auto pt-2" variant="soft" color="neutral" loading></UButton>
               <p v-else class="text-xl font-bold mt-auto pt-2">{{ allBorrowedData.filter(i => i.status == "Pending").length }}</p>
             </div>
-            <div class="flex-1 min-w-[calc(50%-0.5rem)] flex flex-col bg-white py-2 px-4 rounded-lg shadow">
+            <div class="flex-1 min-w-[calc(50%-0.5rem)] flex flex-col bg-white py-2 px-4 rounded-lg shadow" @click="setType('borrowed')">
               <p class="text-gray-500 text-sm">
                 <UIcon name="i-lucide-refresh-ccw" class="text-blue-600 mr-2" />
                 Borrowed
@@ -49,7 +49,7 @@
               <UButton v-if="isGettingData" class="mt-auto pt-2" variant="soft" color="neutral" loading></UButton>
               <p v-else class="text-xl font-bold mt-auto pt-2">{{ allBorrowedData.filter(i => i.status == "On Going").length + allBorrowedData.filter(i => i.status == "Unreturned").length }}</p>
             </div>
-            <div class="flex-1 min-w-[calc(50%-0.5rem)] flex flex-col bg-white py-2 px-4 rounded-lg shadow">
+            <div class="flex-1 min-w-[calc(50%-0.5rem)] flex flex-col bg-white py-2 px-4 rounded-lg shadow" @click="setType('returned')">
               <p class="text-gray-500 text-sm">
                 <UIcon name="i-lucide-undo-2" class="text-green-600 mr-2" />
                 Returned
@@ -59,7 +59,7 @@
             </div>
           </div>
 
-          <DashboardChart v-if="!isGettingData" :data="allBorrowedData" />
+          <DashboardChart v-if="!isGettingData" :data="allBorrowedData" :selectType="selectType" />
         </div>
     </ion-content>
   </ion-page>
@@ -76,12 +76,13 @@
   const allUsersLength = ref()
   const allEquipments = ref()
   const allStaffLength = ref()
+  const selectType = ref('borrowed')
 
   const getStatsData = async () => {
     isGettingData.value = true
     try {
       let { count: items, error: itemsErr } = await supabase
-      .from('tbl_item')
+      .from('tbl_item_models')
       .select('*', { count: 'exact', head: true })
 
       if(itemsErr) throw itemsErr
@@ -119,9 +120,12 @@
       console.log(error)
       isGettingData.value = false
     }
-    
 
+  }
 
+  const setType = (type) => {
+    selectType.value = type
+    console.log(type)
   }
 
 
