@@ -121,7 +121,7 @@
               </template>
             </UTable>
             <div class="flex justify-center border-t border-default pt-4 px-4">
-            <UPagination color="neutral" activeColor="neutral"
+            <UPagination v-if="borrowedItemsData?.length >= 10" color="neutral" activeColor="neutral"
               :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
               :items-per-page="table?.tableApi?.getState().pagination.pageSize"
               :total="table?.tableApi?.getFilteredRowModel().rows.length"
@@ -576,7 +576,7 @@
 
   const pagination = ref({
     pageIndex: 0,
-    pageSize: 7
+    pageSize: 10
   })
   
   //for UTable

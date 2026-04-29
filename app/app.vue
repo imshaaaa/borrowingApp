@@ -9,6 +9,8 @@
 <script setup>
   import { StatusBar, Style } from '@capacitor/status-bar';
   import { App } from '@capacitor/app';
+  
+  const user = useSupabaseUser()
 
   let route = useRoute()
 
@@ -18,6 +20,7 @@
     } catch (error) {
       console.log('status bar not available for web')
     }
+    console.log('user??', user)
   })
   
   App.addListener('backButton', () => {

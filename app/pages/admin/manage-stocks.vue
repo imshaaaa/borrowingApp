@@ -39,7 +39,7 @@
             </UTable> -->
             <UTable ref="table" :columns="columns" v-model:global-filter="globalFilter" :data="allStocks" class="flex-1 bg-white rounded-lg p-2" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }" />
             <div class="flex justify-center border-t border-default pt-4 px-4">
-            <UPagination color="neutral" activeColor="neutral"
+            <UPagination v-if="allStocks?.length >= 10" color="neutral" activeColor="neutral"
               :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
               :items-per-page="table?.tableApi?.getState().pagination.pageSize"
               :total="table?.tableApi?.getFilteredRowModel().rows.length"
@@ -213,7 +213,7 @@
   const getEquipments = async () => {
     isGettingStocksData.value = true
     try {
-      let { data, error } = await supabase.from('tbl_item_models').select('*').order('quantity', { ascending: false })
+      let { data, error } = await supabase.from('tbl_item_models').select('*').order('quantity', { ascending: false }).gt('quantity', 0)
 
       if(error) throw error
       
@@ -387,18 +387,18 @@
 
   const pagination = ref({
     pageIndex: 0,
-    pageSize: 7
+    pageSize: 10
   })
   
   // for UTable
   const columns = [
     { 
       accessorKey: 'id',
-      header: 'Model ID'
+      header: 'Product ID'
     },
     { 
       accessorKey: 'item_name',
-      header: 'Equipment Name'
+      header: 'Item Name'
     },
     { 
       accessorKey: 'category',

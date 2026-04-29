@@ -137,7 +137,7 @@ watch(open, (isNowOpen) => {
       supabase.removeChannel(statusChannel)
     }
     
-    let { error } = await supabase.auth.signOut()
+    let { error } = await supabase.auth.signOut({ scope: 'global' })
     if(error) {
       toast.add({
         title: 'Application Error',

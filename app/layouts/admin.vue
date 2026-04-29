@@ -17,7 +17,7 @@
                 <UButton icon="i-lucide-box" size="lg" :color="activePath === '/admin/manage-stocks' ? 'secondary' : 'neutral'" :variant="activePath === '/admin/manage-stocks' ? 'solid' : 'ghost'" class="w-full" @click="toLink('manage-stocks')"> Equipment List</UButton>
                 <UButton icon="i-lucide-package" size="lg" :color="activePath === '/admin/inventory' ? 'secondary' : 'neutral'" :variant="activePath === '/admin/inventory' ? 'solid' : 'ghost'" class="w-full" @click="toLink('inventory')"> <span v-if="userStore.user?.user_type == 'Technical Staff'">Manage Equipment Inventory</span><span v-else>Equipment Inventory</span></UButton>
                 <UButton icon="i-lucide-workflow" size="lg" :color="activePath === '/admin/borrowed-items' ? 'secondary' : 'neutral'" :variant="activePath === '/admin/borrowed-items' ? 'solid' : 'ghost'" class="w-full" @click="toLink('borrowed-items')"> <span v-if="userStore.user?.user_type == 'Technical Staff'">Manage Borrowed Equipments</span><span v-else>Borrowed Equipments</span></UButton>
-                <UButton icon="i-lucide-users" size="lg" :color="activePath === '/admin/manage-users' ? 'secondary' : 'neutral'" :variant="activePath === '/admin/manage-users' ? 'solid' : 'ghost'" class="w-full" @click="toLink('manage-users')"> <span v-if="userStore.user?.user_type == 'Technical Staff'">Manage Users</span><span v-else>Users</span></UButton>
+                <UButton icon="i-lucide-users" size="lg" :color="activePath === '/admin/manage-users' ? 'secondary' : 'neutral'" :variant="activePath === '/admin/manage-users' ? 'solid' : 'ghost'" class="w-full" @click="toLink('manage-users')">Users</UButton>
                 <!--<UButton icon="i-lucide-file-chart-column" size="lg" color="neutral" variant="ghost" class="w-full" @click="toLink('reports')">Reports</UButton>-->
                 <UButton icon="i-lucide-history" size="lg" :color="activePath === '/admin/history' ? 'secondary' : 'neutral'" :variant="activePath === '/admin/history' ? 'solid' : 'ghost'" class="w-full" @click="toLink('history')">History</UButton>
               </div>
@@ -138,7 +138,7 @@ watch(open, (isNowOpen) => {
       supabase.removeChannel(adminChannel)
     }
 
-    let { error } = await supabase.auth.signOut()
+    let { error } = await supabase.auth.signOut({ scope: 'global' })
     if(error) {
       toast.add({
         title: 'Application Error',

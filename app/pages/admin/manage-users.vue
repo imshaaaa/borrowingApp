@@ -4,8 +4,8 @@
         <div class="min-h-full bg-gray-100 pt-24 px-6">
           <LoadingTable v-if="isGettingUsersData"/>
           <div class="mt-6" v-else>
-            <div class="flex justify-between mb-2 gap-4">
-              <UInput v-model="globalFilter" placeholder="Search" color="secondary">
+            <div class="mb-2">
+              <UInput v-model="globalFilter" placeholder="Search" color="secondary" class="w-full mb-2">
                 <template v-if="globalFilter.length" #trailing>
                   <UButton
                     color="neutral"
@@ -17,9 +17,10 @@
                   />
                 </template>
               </UInput>
-              <USelect v-model="statusFilter" class="w-auto" color="secondary" variant="outline" :items="statusFilterItems"/>
+              <USelect v-model="statusFilter" class="w-auto mr-2" color="secondary" variant="outline" :items="statusFilterItems"/>
+              <USelect v-model="roleFilter" class="w-auto" color="secondary" variant="outline" :items="userStore.user.user_type == 'Admin' ? roleFilterItemsAdmin : roleFilterItemsTechnical"/>
             </div>
-            <UTable ref="table" :data="filteredUsers" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
+            <UTable ref="table" :data="filteredRoles" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
               <!-- <template #actions-cell="{ row }">
                 <div v-if="userStore.user.user_type !== 'Admin'" class="flex justify-center items-center gap-2">
                   <UButton v-if="row.original.status  != 'Approved' && row.original.status  != 'Disabled' && row.original.status  != 'Rejected'" variant="soft" color="neutral" @click="openActionsModal(row.original)">
@@ -33,7 +34,7 @@
               </template> -->
             </UTable>
             <div class="flex justify-center border-t border-default pt-4 px-4">
-            <UPagination color="neutral" activeColor="neutral"
+            <UPagination v-if="filteredUsers?.length >= 10" color="neutral" activeColor="neutral"
               :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
               :items-per-page="table?.tableApi?.getState().pagination.pageSize"
               :total="table?.tableApi?.getFilteredRowModel().rows.length"
@@ -118,7 +119,7 @@
   import { h, resolveComponent } from 'vue'
   import { getPaginationRowModel } from '@tanstack/vue-table'
   import { onIonViewWillEnter, onIonViewWillLeave } from '#imports'
-import { user } from '#build/ui'
+import { header, user } from '#build/ui'
 
   const supabase = useSupabaseClient()
   const userStore = useUserStore()
@@ -143,7 +144,10 @@ import { user } from '#build/ui'
   const selectedUser = ref({})
   const statusItems = ref(['Pending','Approved'])
   const statusFilterItems = ref(['All Status', 'Pending', 'Approved', 'Disabled', 'Rejected'])
+  const roleFilterItemsTechnical = ref(['All Roles','Student', 'Staff', 'Teacher'])
+  const roleFilterItemsAdmin = ref(['All Roles','OJT Trainee', 'Technical Staff'])
   const statusFilter = ref('All Status')
+  const roleFilter = ref('All Roles')
   const globalFilter = ref('')
   const allUsersData = ref(null)
 
@@ -180,11 +184,12 @@ import { user } from '#build/ui'
     if(usersData) {
       let newUsersData = usersData.map(d => ({
         user_id: d.employee_id || d.student_id,
+        role: d.user_type,
         user_uid: d.user_uid || null,
         fullname: `${d.firstname} ${d.lastname}`,
         email: d.email,
         contact: d.contact_number,
-        details: d.course || 'N/A',
+        details: d.course ? `${d.student_role} - ${d.course}` : d.department ,
         year_level: d.year_level || 'N/A',
         username: d.username,
         status: d.status
@@ -199,6 +204,14 @@ import { user } from '#build/ui'
       return allUsersData.value
     } else {
       return allUsersData.value.filter(u => u.status == statusFilter.value)
+    }
+  })
+
+  const filteredRoles = computed(() => {
+    if(roleFilter.value == 'All Roles') {
+      return filteredUsers.value
+    } else {
+      return filteredUsers.value.filter(u => u.role == roleFilter.value)
     }
   })
   
@@ -345,7 +358,7 @@ import { user } from '#build/ui'
 
   const pagination = ref({
     pageIndex: 0,
-    pageSize: 7
+    pageSize: 10
   })
   
   // for UTable
@@ -353,6 +366,10 @@ import { user } from '#build/ui'
     { 
       accessorKey: 'user_id',
       header: 'User ID'
+    },
+    {
+      accessorKey: 'role',
+      header: 'Role'
     },
     { 
       accessorKey: 'fullname',

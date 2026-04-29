@@ -322,7 +322,7 @@ import { user } from '#build/ui'
 
         let { error: isNotifErr } = await supabase.from('tbl_notifications').insert([
           {
-            title: 'New Registration',
+            title: 'New User Registration',
             message: `New ${state.registerAs}: ${state.firstname} ${state.middlename} ${state.lastname} is waiting for approval`,
             timestamp: new Date().toISOString()
           }

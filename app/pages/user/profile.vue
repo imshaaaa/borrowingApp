@@ -43,15 +43,22 @@
               <UFormField label="User ID" class="mt-4">
                 <UInput v-model="state.userid" class="w-full" variant="soft" disabled/>
               </UFormField>
-              <UFormField label="Course / Program" name="courses" class="mt-4">
-                <USelect color="secondary" variant="soft" v-model="state.course" :items="courseItems" class="w-full" :disabled="!isEdit"/>
-              </UFormField>
-              <UFormField label="Year Level" name="yearLevel" class="mt-4">
-                <USelect color="secondary" variant="soft" v-model="state.yearLevel" :items="yearLevelItems" class="w-full" :disabled="!isEdit"/>
-              </UFormField>
-              <UFormField label="Section" name="section" class="mt-4">
-                <UInput v-model="state.section" class="w-full" variant="soft" :disabled="!isEdit" :ui="{ input: 'uppercase' }"/>
-              </UFormField>
+              <div v-if="userStore.user.user_type == 'Student'">
+                <UFormField label="Course / Program" name="courses" class="mt-4">
+                  <USelect color="secondary" variant="soft" v-model="state.course" :items="courseItems" class="w-full" :disabled="!isEdit"/>
+                </UFormField>
+                <UFormField label="Year Level" name="yearLevel" class="mt-4">
+                  <USelect color="secondary" variant="soft" v-model="state.yearLevel" :items="yearLevelItems" class="w-full" :disabled="!isEdit"/>
+                </UFormField>
+                <UFormField label="Section" name="section" class="mt-4">
+                  <UInput v-model="state.section" class="w-full" variant="soft" :disabled="!isEdit" :ui="{ input: 'uppercase' }"/>
+                </UFormField>
+              </div>
+              <div v-if="userStore.user.user_type == 'Staff' || userStore.user.user_type == 'Teacher'">
+                <UFormField label="Department" class="mt-4">
+                  <UInput v-model="state.department" class="w-full" variant="soft" disabled />
+                </UFormField>
+              </div>
               <UFormField label="Username" class="mt-4">
                 <UInput v-model="state.username" class="w-full" variant="soft" disabled />
               </UFormField>

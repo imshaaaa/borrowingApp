@@ -22,7 +22,7 @@
             <UTable ref="table" :data="filterData" :columns="columns" v-model:global-filter="globalFilter" class="flex-1 bg-white rounded-lg" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
             </UTable>
             <div class="flex justify-center border-t border-default pt-4 px-4">
-            <UPagination color="neutral" activeColor="neutral"
+            <UPagination v-if="filterData?.length >= 10" color="neutral" activeColor="neutral"
               :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
               :items-per-page="table?.tableApi?.getState().pagination.pageSize"
               :total="table?.tableApi?.getFilteredRowModel().rows.length"
@@ -59,7 +59,7 @@
 
   const pagination = ref({
     pageIndex: 0,
-    pageSize: 7
+    pageSize: 10
   })
 
   const getHistoryData = async () => {
